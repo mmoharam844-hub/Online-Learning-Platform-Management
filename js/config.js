@@ -1,9 +1,9 @@
 const APP_CONFIG = {
   APP_NAME: 'منصة د/ ممدوح محفوظ للأشعة التشخيصية',
-  TEACHER_NAME: 'د/ ممدوح محفوظ',
+  TEACHER_NAME: 'أ.د/ ممدوح محفوظ',
   TEACHER_SLOGAN: 'تعلم الأشعة صح',
   STORAGE_PREFIX: 'ek_',
-  YOUTUBE_VIDEO: 'https://www.youtube.com/embed/JjPkTOabsX8',
+  YOUTUBE_VIDEO: 'https://www.youtube.com/embed/BpXfToKwsFo',
 
   GRADES: [
     { value: 'med_student', label: 'طالب طب' },
@@ -32,7 +32,7 @@ const APP_CONFIG = {
   },
 
   ADMIN_DEFAULT: {
-    username: 'admin',
-    password: 'admin123'
+    username: 'Admin',
+    password: 'Admin123'
   }
 };
