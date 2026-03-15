@@ -1,5 +1,5 @@
 // Auto-seed demo data on first load (version-based re-seeding)
-const SEED_VERSION = 2; // Increment this to force re-seed with new data
+const SEED_VERSION = 3; // Increment this to force re-seed with new data
 
 (async function seedData() {
   const currentVersion = Storage.get('seed_version');
@@ -13,6 +13,8 @@ const SEED_VERSION = 2; // Increment this to force re-seed with new data
     Storage.save('students', []);
     Storage.save('subscriptions', []);
     Storage.save('progress', []);
+    Storage.save('quizzes', []);
+    Storage.save('quiz_results', []);
     console.log('إعادة تحميل البيانات التجريبية (إصدار جديد)...');
   }
 
@@ -191,6 +193,82 @@ const SEED_VERSION = 2; // Increment this to force re-seed with new data
     { id: 'prog_003', studentId: 'stu_002', courseId: 'crs_003', lessonId: 'les_007', completed: true, completedAt: '2026-01-23T10:00:00Z' }
   ];
   Storage.save('progress', progress);
+
+  // Seed quizzes - اختبارات سريعة بعد كل درس
+  const quizzes = [
+    {
+      id: 'quiz_001', lessonId: 'les_001',
+      questions: [
+        { text: 'ما هو أول شيء يجب التحقق منه عند قراءة أشعة الصدر؟', options: ['حجم القلب', 'بيانات المريض والجودة التقنية', 'الرئتين', 'العظام'], correct: 1 },
+        { text: 'ما هو الحجم الطبيعي لنسبة القلب إلى الصدر (CTR)؟', options: ['أقل من 30%', 'أقل من 40%', 'أقل من 50%', 'أقل من 60%'], correct: 2 },
+        { text: 'في أشعة الصدر PA، أين يكون المريض بالنسبة للفيلم؟', options: ['ظهره للفيلم', 'صدره للفيلم', 'جانبه للفيلم', 'لا فرق'], correct: 1 },
+        { text: 'ما هي علامة الانصباب الجنبي في أشعة الصدر؟', options: ['زيادة شفافية الرئة', 'انحناء خط الحجاب الحاجز', 'طمس الزاوية الضلعية الحجابية', 'تضخم القلب'], correct: 2 }
+      ]
+    },
+    {
+      id: 'quiz_002', lessonId: 'les_002',
+      questions: [
+        { text: 'ما هو الفرق بين أشعة PA و AP للصدر؟', options: ['لا فرق', 'في PA الأشعة تدخل من الخلف وتخرج من الأمام', 'في AP الصورة أوضح', 'PA تستخدم فقط للأطفال'], correct: 1 },
+        { text: 'ما سبب ظهور القلب أكبر من حجمه الحقيقي في أشعة AP؟', options: ['خطأ في الجهاز', 'القلب أقرب من مصدر الأشعة فيتضخم ظله', 'المريض يتنفس بعمق', 'الفيلم صغير'], correct: 1 },
+        { text: 'ما هي علامة الاسترواح الصدري (Pneumothorax) في الأشعة؟', options: ['عتامة في الرئة', 'خط رفيع يفصل الرئة عن جدار الصدر مع غياب العلامات الرئوية', 'تضخم في القلب', 'ارتفاع الحجاب الحاجز'], correct: 1 }
+      ]
+    },
+    {
+      id: 'quiz_003', lessonId: 'les_004',
+      questions: [
+        { text: 'ما هو أفضل فحص لتصوير أنسجة المخ الرخوة؟', options: ['الأشعة العادية', 'الأشعة المقطعية CT', 'الرنين المغناطيسي MRI', 'الموجات فوق الصوتية'], correct: 2 },
+        { text: 'في CT المخ الطبيعي، ما لون المادة الرمادية مقارنة بالبيضاء؟', options: ['أفتح (أعلى كثافة)', 'أغمق (أقل كثافة)', 'نفس اللون', 'لا تظهر في CT'], correct: 0 },
+        { text: 'أين تقع البطينات الجانبية في المخ؟', options: ['في جذع المخ', 'في نصفي الكرة المخية', 'في المخيخ', 'خارج المخ'], correct: 1 },
+        { text: 'ما هو النزيف الذي يظهر كهلال بين الجمجمة والمخ؟', options: ['Epidural hematoma', 'Subdural hematoma', 'Subarachnoid hemorrhage', 'Intracerebral hemorrhage'], correct: 1 }
+      ]
+    },
+    {
+      id: 'quiz_004', lessonId: 'les_005',
+      questions: [
+        { text: 'ما هو أفضل فحص مبدئي لتقييم الكلى؟', options: ['CT بالصبغة', 'MRI', 'الموجات فوق الصوتية', 'الأشعة العادية'], correct: 2 },
+        { text: 'ما هو الحجم الطبيعي للكلية عند البالغين؟', options: ['5-7 سم', '9-12 سم', '15-18 سم', '3-5 سم'], correct: 1 },
+        { text: 'ما هي العلامة المميزة لحصوات الكلى في CT بدون صبغة؟', options: ['عتامة منخفضة', 'بؤرة عالية الكثافة (hyperdense)', 'تغير في حجم الكلى', 'لا تظهر في CT'], correct: 1 }
+      ]
+    },
+    {
+      id: 'quiz_005', lessonId: 'les_007',
+      questions: [
+        { text: 'ما هي نافذة العرض المستخدمة لرؤية الرئتين في CT الصدر؟', options: ['Soft tissue window', 'Lung window', 'Bone window', 'Brain window'], correct: 1 },
+        { text: 'ما هي وحدة قياس الكثافة في الأشعة المقطعية؟', options: ['ديسيبل', 'هاونسفيلد (HU)', 'تسلا', 'بكسل'], correct: 1 },
+        { text: 'كم تبلغ كثافة الماء بوحدة هاونسفيلد؟', options: ['-1000 HU', '-100 HU', '0 HU', '+100 HU'], correct: 2 },
+        { text: 'متى نستخدم الصبغة الوريدية في CT الصدر؟', options: ['دائماً', 'عند الشك في مشاكل الأوعية أو الأورام', 'فقط للأطفال', 'لا تستخدم أبداً'], correct: 1 }
+      ]
+    },
+    {
+      id: 'quiz_006', lessonId: 'les_008',
+      questions: [
+        { text: 'ما هو أول فحص يُطلب في إصابات الرأس الحادة؟', options: ['MRI المخ', 'CT المخ بدون صبغة', 'أشعة عادية على الجمجمة', 'دوبلر على الشرايين'], correct: 1 },
+        { text: 'كيف يظهر النزيف الحاد في CT المخ؟', options: ['أسود (منخفض الكثافة)', 'أبيض (عالي الكثافة)', 'رمادي (متساوي الكثافة)', 'لا يظهر في CT'], correct: 1 },
+        { text: 'ما شكل النزيف فوق الجافية (Epidural) في CT؟', options: ['هلالي الشكل', 'عدسي الشكل (biconvex)', 'منتشر', 'نقطي'], correct: 1 }
+      ]
+    },
+    {
+      id: 'quiz_007', lessonId: 'les_012',
+      questions: [
+        { text: 'ما هو المبدأ الفيزيائي الذي يعمل به جهاز MRI؟', options: ['الأشعة السينية', 'الموجات فوق الصوتية', 'الرنين المغناطيسي النووي', 'أشعة جاما'], correct: 2 },
+        { text: 'في صور T1، كيف يظهر السائل النخاعي (CSF)؟', options: ['أبيض ساطع', 'أسود (منخفض الإشارة)', 'رمادي', 'لا يظهر'], correct: 1 },
+        { text: 'في صور T2، كيف يظهر السائل النخاعي (CSF)؟', options: ['أسود', 'أبيض ساطع (عالي الإشارة)', 'رمادي', 'أحمر'], correct: 1 },
+        { text: 'ما هي تقنية FLAIR المستخدمة في MRI؟', options: ['تقنية لإظهار العظام', 'T2 مع إلغاء إشارة السائل النخاعي', 'تقنية لتصوير الأوعية', 'تقنية لقياس الانتشار'], correct: 1 }
+      ]
+    },
+    {
+      id: 'quiz_008', lessonId: 'les_014',
+      questions: [
+        { text: 'ما هو أفضل فحص لتقييم الرباط الصليبي الأمامي (ACL)؟', options: ['الأشعة العادية', 'CT الركبة', 'MRI الركبة', 'الموجات فوق الصوتية'], correct: 2 },
+        { text: 'في أي مستوى (plane) يُرى الرباط الصليبي الأمامي بوضوح في MRI؟', options: ['Axial', 'Sagittal', 'Coronal', 'لا يظهر في MRI'], correct: 1 },
+        { text: 'ما هي علامة قطع الغضروف الهلالي في MRI؟', options: ['زيادة حجم الغضروف', 'إشارة عالية تصل لسطح الغضروف', 'اختفاء الغضروف تماماً', 'تكلس الغضروف'], correct: 1 }
+      ]
+    }
+  ];
+  Storage.save('quizzes', quizzes);
+
+  // Initialize empty quiz results
+  Storage.save('quiz_results', []);
 
   Storage.set('seeded', true);
   Storage.set('seed_version', SEED_VERSION);

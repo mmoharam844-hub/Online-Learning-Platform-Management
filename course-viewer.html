@@ -26,7 +26,7 @@
         </div>
 
         <div class="lesson-info" id="lessonInfo">
-          <h1 id="lessonTitle">جاري التحميل...</h1>
+          <h1 id="lessonTitle"><span class="skeleton skeleton-title" style="display:inline-block;width:50%">&nbsp;</span></h1>
           <div class="lesson-meta">
             <span><i class="fas fa-clock"></i> <span id="lessonDuration"></span></span>
             <span><i class="fas fa-book"></i> <span id="courseName"></span></span>
@@ -36,6 +36,21 @@
           <div class="homework-box" id="homeworkBox" style="display: none;">
             <h4><i class="fas fa-tasks"></i> الواجب</h4>
             <p id="homeworkText"></p>
+          </div>
+
+          <!-- Quiz Section -->
+          <div class="quiz-section" id="quizSection" style="display: none;">
+            <div class="quiz-header">
+              <h4><i class="fas fa-question-circle"></i> اختبار سريع</h4>
+              <span class="quiz-best-score" id="quizBestScore"></span>
+            </div>
+            <div id="quizQuestions"></div>
+            <div class="quiz-actions" id="quizActions">
+              <button class="btn btn-accent" onclick="submitQuiz()">
+                <i class="fas fa-paper-plane"></i> تقديم الإجابات
+              </button>
+            </div>
+            <div id="quizResult"></div>
           </div>
 
           <div class="lesson-actions">
@@ -182,6 +197,9 @@
 
       renderLessonsList();
 
+      // Load quiz for this lesson
+      loadQuiz(lessonId);
+
       // Update URL
       const url = new URL(window.location);
       url.searchParams.set('lessonId', lessonId);
@@ -213,6 +231,140 @@
       } else if (direction === 'prev' && currentIdx > 0) {
         loadLesson(lessons[currentIdx - 1].id);
       }
+    }
+
+    // ========== QUIZ SYSTEM ==========
+    let currentQuiz = null;
+    let quizAnswers = {};
+    let quizSubmitted = false;
+
+    function loadQuiz(lessonId) {
+      const quizSection = document.getElementById('quizSection');
+      const quizzes = Storage.query('quizzes', q => q.lessonId === lessonId);
+
+      if (quizzes.length === 0) {
+        quizSection.style.display = 'none';
+        return;
+      }
+
+      currentQuiz = quizzes[0];
+      quizAnswers = {};
+      quizSubmitted = false;
+      quizSection.style.display = 'block';
+
+      // Show best score if exists
+      const bestScoreEl = document.getElementById('quizBestScore');
+      const prevResults = Storage.query('quiz_results', r => r.studentId === user.id && r.quizId === currentQuiz.id);
+      if (prevResults.length > 0) {
+        const best = prevResults.reduce((a, b) => a.percentage > b.percentage ? a : b);
+        bestScoreEl.innerHTML = `أفضل نتيجة: <strong>${best.percentage}%</strong>`;
+      } else {
+        bestScoreEl.innerHTML = '';
+      }
+
+      renderQuiz();
+    }
+
+    function renderQuiz() {
+      const container = document.getElementById('quizQuestions');
+      const optionLabels = ['أ', 'ب', 'ج', 'د'];
+
+      container.innerHTML = currentQuiz.questions.map((q, qIdx) => `
+        <div class="quiz-question">
+          <div class="quiz-question-number">السؤال ${qIdx + 1} من ${currentQuiz.questions.length}</div>
+          <div class="quiz-question-text">${q.text}</div>
+          <div class="quiz-options">
+            ${q.options.map((opt, oIdx) => `
+              <button type="button" class="quiz-option ${quizAnswers[qIdx] === oIdx ? 'selected' : ''} ${quizSubmitted ? 'disabled' : ''} ${quizSubmitted && oIdx === q.correct ? 'correct' : ''} ${quizSubmitted && quizAnswers[qIdx] === oIdx && oIdx !== q.correct ? 'wrong' : ''}"
+                onclick="selectOption(${qIdx}, ${oIdx})" ${quizSubmitted ? 'disabled' : ''}>
+                <span class="option-icon">${quizSubmitted && oIdx === q.correct ? '<i class=\"fas fa-check\"></i>' : quizSubmitted && quizAnswers[qIdx] === oIdx && oIdx !== q.correct ? '<i class=\"fas fa-times\"></i>' : optionLabels[oIdx]}</span>
+                ${opt}
+              </button>
+            `).join('')}
+          </div>
+        </div>
+      `).join('');
+
+      // Update actions
+      const actionsEl = document.getElementById('quizActions');
+      if (quizSubmitted) {
+        actionsEl.innerHTML = `
+          <button class="btn btn-primary" onclick="retryQuiz()">
+            <i class="fas fa-redo"></i> إعادة المحاولة
+          </button>
+        `;
+      } else {
+        actionsEl.innerHTML = `
+          <button class="btn btn-accent" onclick="submitQuiz()">
+            <i class="fas fa-paper-plane"></i> تقديم الإجابات
+          </button>
+        `;
+      }
+    }
+
+    function selectOption(qIdx, oIdx) {
+      if (quizSubmitted) return;
+      quizAnswers[qIdx] = oIdx;
+      renderQuiz();
+    }
+
+    function submitQuiz() {
+      if (!currentQuiz) return;
+
+      // Check all questions answered
+      const totalQ = currentQuiz.questions.length;
+      const answeredQ = Object.keys(quizAnswers).length;
+      if (answeredQ < totalQ) {
+        Utils.showToast(`أجب على جميع الأسئلة أولاً (${answeredQ}/${totalQ})`, 'warning');
+        return;
+      }
+
+      quizSubmitted = true;
+
+      // Calculate score
+      let score = 0;
+      currentQuiz.questions.forEach((q, idx) => {
+        if (quizAnswers[idx] === q.correct) score++;
+      });
+
+      const percentage = Math.round((score / totalQ) * 100);
+      const passed = percentage >= 70;
+
+      // Save result
+      Storage.add('quiz_results', {
+        studentId: user.id,
+        lessonId: currentLessonId,
+        quizId: currentQuiz.id,
+        score: score,
+        total: totalQ,
+        percentage: percentage,
+        completedAt: new Date().toISOString()
+      });
+
+      // Show result
+      const resultEl = document.getElementById('quizResult');
+      resultEl.innerHTML = `
+        <div class="quiz-result ${passed ? 'pass' : 'fail'}">
+          <i class="fas ${passed ? 'fa-trophy' : 'fa-exclamation-triangle'}"></i>
+          <span>حصلت على ${score}/${totalQ} (${percentage}%) ${passed ? '- أحسنت!' : '- حاول مرة أخرى'}</span>
+        </div>
+      `;
+
+      // Update best score display
+      const bestScoreEl = document.getElementById('quizBestScore');
+      const prevResults = Storage.query('quiz_results', r => r.studentId === user.id && r.quizId === currentQuiz.id);
+      const best = prevResults.reduce((a, b) => a.percentage > b.percentage ? a : b);
+      bestScoreEl.innerHTML = `أفضل نتيجة: <strong>${best.percentage}%</strong>`;
+
+      renderQuiz();
+      Utils.showToast(passed ? 'أحسنت! اجتزت الاختبار' : 'حاول مرة أخرى للحصول على نتيجة أفضل', passed ? 'success' : 'warning');
+    }
+
+    function retryQuiz() {
+      quizAnswers = {};
+      quizSubmitted = false;
+      document.getElementById('quizResult').innerHTML = '';
+      renderQuiz();
     }
 
     init();
