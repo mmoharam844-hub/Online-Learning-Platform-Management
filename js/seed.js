@@ -9,131 +9,109 @@
     passwordHash: adminHash
   });
 
-  // Seed courses - مواد شرعية أزهرية حقيقية
+  // Seed courses - كورسات أشعة تشخيصية
   const courses = [
-    // === المرحلة الإعدادية ===
+    // كورسات لطلاب الطب
     {
-      id: 'crs_001', name: 'الفقه الشافعي - أولى إعدادي أزهري',
-      description: 'شرح مبسط لمنهج الفقه الشافعي للصف الأول الإعدادي الأزهري: أحكام الطهارة والوضوء والصلاة',
-      grade: '1st_prep', price: 80, lessonsCount: 3, isPublished: true, createdAt: '2026-01-10T10:00:00Z'
+      id: 'crs_001', name: 'أساسيات الأشعة العادية X-Ray',
+      description: 'مقدمة شاملة في قراءة وتفسير الأشعة السينية العادية: الصدر والبطن والعظام والمفاصل',
+      grade: 'med_student', price: 200, lessonsCount: 3, isPublished: true, createdAt: '2026-01-10T10:00:00Z'
     },
     {
-      id: 'crs_002', name: 'التوحيد - أولى إعدادي أزهري',
-      description: 'شرح منهج التوحيد: معرفة الله تعالى وصفاته وأركان الإيمان',
-      grade: '1st_prep', price: 80, lessonsCount: 2, isPublished: true, createdAt: '2026-01-12T10:00:00Z'
+      id: 'crs_002', name: 'تشريح الأشعة - Radiological Anatomy',
+      description: 'التشريح الإشعاعي الأساسي لطلاب الطب: كيف تتعرف على التراكيب التشريحية في الصور الإشعاعية',
+      grade: 'med_student', price: 250, lessonsCount: 3, isPublished: true, createdAt: '2026-01-15T10:00:00Z'
+    },
+
+    // كورسات لأطباء الامتياز
+    {
+      id: 'crs_003', name: 'الأشعة المقطعية CT Scan - المستوى الأول',
+      description: 'أساسيات قراءة الأشعة المقطعية: المخ والصدر والبطن مع حالات عملية',
+      grade: 'intern', price: 350, lessonsCount: 3, isPublished: true, createdAt: '2026-01-20T10:00:00Z'
     },
     {
-      id: 'crs_003', name: 'الفقه الشافعي - تانية إعدادي أزهري',
-      description: 'شرح منهج الفقه للصف الثاني الإعدادي: أحكام الزكاة والصيام',
-      grade: '2nd_prep', price: 100, lessonsCount: 2, isPublished: true, createdAt: '2026-01-15T10:00:00Z'
+      id: 'crs_004', name: 'حالات طوارئ في الأشعة - Emergency Radiology',
+      description: 'قراءة أشعة حالات الطوارئ: الكسور والنزيف والانسداد المعوي والاسترواح الصدري',
+      grade: 'intern', price: 300, lessonsCount: 2, isPublished: true, createdAt: '2026-02-01T10:00:00Z'
+    },
+
+    // كورسات لأخصائي الأشعة
+    {
+      id: 'crs_005', name: 'الرنين المغناطيسي MRI - شامل',
+      description: 'كورس متقدم في الرنين المغناطيسي: الفيزياء والبروتوكولات وقراءة الصور مع حالات سريرية',
+      grade: 'specialist', price: 500, lessonsCount: 3, isPublished: true, createdAt: '2026-02-05T10:00:00Z'
     },
     {
-      id: 'crs_004', name: 'الحديث الشريف - تانية إعدادي أزهري',
-      description: 'شرح أحاديث نبوية مختارة من منهج الصف الثاني الإعدادي مع الشرح والفوائد',
-      grade: '2nd_prep', price: 100, lessonsCount: 2, isPublished: true, createdAt: '2026-01-18T10:00:00Z'
+      id: 'crs_006', name: 'الأشعة التداخلية - Interventional Radiology',
+      description: 'مقدمة في الأشعة التداخلية: القسطرة التشخيصية والعلاجية والخزعات الموجهة',
+      grade: 'specialist', price: 450, lessonsCount: 2, isPublished: true, createdAt: '2026-02-10T10:00:00Z'
+    },
+
+    // كورسات لفنيين الأشعة
+    {
+      id: 'crs_007', name: 'بروتوكولات التصوير الإشعاعي',
+      description: 'البروتوكولات المعتمدة في تصوير الأشعة العادية والمقطعية: الوضعيات والإعدادات الصحيحة',
+      grade: 'technician', price: 200, lessonsCount: 3, isPublished: true, createdAt: '2026-02-15T10:00:00Z'
     },
     {
-      id: 'crs_005', name: 'التفسير - تالتة إعدادي أزهري',
-      description: 'تفسير سور مختارة من جزء عم مع بيان معاني الآيات والأحكام المستفادة',
-      grade: '3rd_prep', price: 120, lessonsCount: 2, isPublished: true, createdAt: '2026-02-01T10:00:00Z'
-    },
-    // === المرحلة الثانوية ===
-    {
-      id: 'crs_006', name: 'الفقه الشافعي - أولى ثانوي أزهري',
-      description: 'شرح منهج الفقه الشافعي للصف الأول الثانوي: أحكام البيوع والمعاملات',
-      grade: '1st_secondary', price: 150, lessonsCount: 3, isPublished: true, createdAt: '2026-02-05T10:00:00Z'
-    },
-    {
-      id: 'crs_007', name: 'التوحيد - أولى ثانوي أزهري',
-      description: 'شرح منهج التوحيد: الأدلة العقلية والنقلية على وجود الله وصفاته',
-      grade: '1st_secondary', price: 150, lessonsCount: 2, isPublished: true, createdAt: '2026-02-08T10:00:00Z'
-    },
-    {
-      id: 'crs_008', name: 'الفقه الشافعي - تانية ثانوي أزهري',
-      description: 'شرح منهج الفقه: أحكام النكاح والطلاق والميراث',
-      grade: '2nd_secondary', price: 180, lessonsCount: 2, isPublished: true, createdAt: '2026-02-10T10:00:00Z'
-    },
-    {
-      id: 'crs_009', name: 'الحديث وعلومه - تانية ثانوي أزهري',
-      description: 'شرح أحاديث من صحيح البخاري ومسلم مع مصطلح الحديث وعلوم الرواية',
-      grade: '2nd_secondary', price: 180, lessonsCount: 2, isPublished: true, createdAt: '2026-02-12T10:00:00Z'
-    },
-    {
-      id: 'crs_010', name: 'الفقه الشافعي - تالتة ثانوي أزهري',
-      description: 'مراجعة شاملة لمنهج الفقه الشافعي للصف الثالث الثانوي: الجنايات والحدود والقضاء',
-      grade: '3rd_secondary', price: 200, lessonsCount: 3, isPublished: true, createdAt: '2026-02-15T10:00:00Z'
-    },
-    {
-      id: 'crs_011', name: 'التفسير - تالتة ثانوي أزهري',
-      description: 'تفسير آيات الأحكام من سورة البقرة وآل عمران مع استنباط الأحكام الفقهية',
-      grade: '3rd_secondary', price: 200, lessonsCount: 2, isPublished: true, createdAt: '2026-02-18T10:00:00Z'
+      id: 'crs_008', name: 'الوقاية من الإشعاع - Radiation Protection',
+      description: 'أساسيات الوقاية من الإشعاع وقواعد السلامة للعاملين في أقسام الأشعة',
+      grade: 'technician', price: 150, lessonsCount: 2, isPublished: true, createdAt: '2026-02-20T10:00:00Z'
     }
   ];
   Storage.save('courses', courses);
 
-  // Seed lessons - دروس شرعية حقيقية
+  // Seed lessons
   const lessons = [
-    // فقه أولى إعدادي
-    { id: 'les_001', courseId: 'crs_001', title: 'أحكام الطهارة - أنواع المياه', description: 'شرح أنواع المياه وأحكامها: الماء الطهور والطاهر والنجس وكيفية التفريق بينهم', videoUrl: 'https://www.youtube.com/embed/JjPkTOabsX8', duration: '40:00', order: 1, homework: 'حل أسئلة باب الطهارة من الكتاب المدرسي صفحة 12', createdAt: '2026-01-11T10:00:00Z' },
-    { id: 'les_002', courseId: 'crs_001', title: 'أحكام الوضوء - الفروض والسنن', description: 'شرح فروض الوضوء وسننه ونواقضه مع التطبيق العملي', videoUrl: 'https://www.youtube.com/embed/JjPkTOabsX8', duration: '45:00', order: 2, homework: 'اكتب فروض الوضوء الستة مع الدليل من السنة', createdAt: '2026-01-12T10:00:00Z' },
-    { id: 'les_003', courseId: 'crs_001', title: 'أحكام الصلاة - الأركان والواجبات', description: 'شرح أركان الصلاة وواجباتها وسننها ومبطلاتها', videoUrl: 'https://www.youtube.com/embed/JjPkTOabsX8', duration: '50:00', order: 3, homework: 'حل تدريبات باب الصلاة كاملة', createdAt: '2026-01-13T10:00:00Z' },
+    // أساسيات X-Ray
+    { id: 'les_001', courseId: 'crs_001', title: 'قراءة أشعة الصدر - Chest X-Ray', description: 'المنهج المنظم لقراءة أشعة الصدر: ABCDE approach مع حالات طبيعية وغير طبيعية', videoUrl: 'https://www.youtube.com/embed/JjPkTOabsX8', duration: '45:00', order: 1, homework: 'حلل 5 صور أشعة صدر باستخدام ABCDE approach', createdAt: '2026-01-11T10:00:00Z' },
+    { id: 'les_002', courseId: 'crs_001', title: 'أشعة البطن - Abdominal X-Ray', description: 'قراءة أشعة البطن: توزيع الغازات والسوائل وعلامات الانسداد المعوي', videoUrl: 'https://www.youtube.com/embed/JjPkTOabsX8', duration: '40:00', order: 2, homework: 'حدد الفرق بين الانسداد في الأمعاء الدقيقة والغليظة', createdAt: '2026-01-12T10:00:00Z' },
+    { id: 'les_003', courseId: 'crs_001', title: 'أشعة العظام والمفاصل', description: 'قراءة أشعة العظام: أنواع الكسور والخلع والتغيرات التنكسية', videoUrl: 'https://www.youtube.com/embed/JjPkTOabsX8', duration: '50:00', order: 3, homework: 'صنّف أنواع الكسور في الصور المرفقة', createdAt: '2026-01-13T10:00:00Z' },
 
-    // توحيد أولى إعدادي
-    { id: 'les_004', courseId: 'crs_002', title: 'معرفة الله تعالى - الأدلة على وجوده', description: 'الأدلة العقلية والفطرية على وجود الله سبحانه وتعالى', videoUrl: 'https://www.youtube.com/embed/JjPkTOabsX8', duration: '35:00', order: 1, homework: 'اذكر ثلاثة أدلة عقلية على وجود الله مع الشرح', createdAt: '2026-01-13T10:00:00Z' },
-    { id: 'les_005', courseId: 'crs_002', title: 'أركان الإيمان الستة', description: 'شرح أركان الإيمان بالتفصيل: الإيمان بالله وملائكته وكتبه ورسله واليوم الآخر والقدر', videoUrl: 'https://www.youtube.com/embed/JjPkTOabsX8', duration: '40:00', order: 2, homework: 'لخّص أركان الإيمان مع ذكر دليل لكل ركن', createdAt: '2026-01-14T10:00:00Z' },
+    // تشريح الأشعة
+    { id: 'les_004', courseId: 'crs_002', title: 'التشريح الإشعاعي للصدر', description: 'التعرف على تراكيب الصدر في الأشعة: القلب والرئتين والمنصف والأوعية الدموية', videoUrl: 'https://www.youtube.com/embed/JjPkTOabsX8', duration: '55:00', order: 1, homework: 'ارسم وحدد التراكيب التشريحية على صورة أشعة صدر', createdAt: '2026-01-16T10:00:00Z' },
+    { id: 'les_005', courseId: 'crs_002', title: 'التشريح الإشعاعي للبطن والحوض', description: 'التعرف على أعضاء البطن والحوض في الأشعة المقطعية والعادية', videoUrl: 'https://www.youtube.com/embed/JjPkTOabsX8', duration: '50:00', order: 2, homework: 'حدد الأعضاء في مقاطع CT البطن', createdAt: '2026-01-17T10:00:00Z' },
+    { id: 'les_006', courseId: 'crs_002', title: 'التشريح الإشعاعي للجهاز العصبي', description: 'تراكيب المخ والحبل الشوكي في الأشعة المقطعية والرنين المغناطيسي', videoUrl: 'https://www.youtube.com/embed/JjPkTOabsX8', duration: '60:00', order: 3, homework: 'حدد الفصوص والبطينات في مقاطع CT المخ', createdAt: '2026-01-18T10:00:00Z' },
 
-    // فقه تانية إعدادي
-    { id: 'les_006', courseId: 'crs_003', title: 'أحكام الزكاة - الأموال الزكوية', description: 'شرح الأموال التي تجب فيها الزكاة ونصابها ومقدارها', videoUrl: 'https://www.youtube.com/embed/JjPkTOabsX8', duration: '45:00', order: 1, homework: 'حل مسائل حساب الزكاة في الكتاب', createdAt: '2026-01-16T10:00:00Z' },
-    { id: 'les_007', courseId: 'crs_003', title: 'أحكام الصيام - الفرائض والمفطرات', description: 'شرح فرائض الصيام وسننه ومبطلاته والأعذار المبيحة للفطر', videoUrl: 'https://www.youtube.com/embed/JjPkTOabsX8', duration: '50:00', order: 2, homework: 'اكتب مبطلات الصيام مع ذكر الدليل', createdAt: '2026-01-17T10:00:00Z' },
+    // CT Scan
+    { id: 'les_007', courseId: 'crs_003', title: 'أساسيات الأشعة المقطعية وفيزياء CT', description: 'كيف يعمل جهاز CT: الفيزياء والإعدادات وأنواع البروتوكولات', videoUrl: 'https://www.youtube.com/embed/JjPkTOabsX8', duration: '45:00', order: 1, homework: 'اشرح الفرق بين CT بالصبغة وبدون صبغة', createdAt: '2026-01-21T10:00:00Z' },
+    { id: 'les_008', courseId: 'crs_003', title: 'CT المخ - حالات عملية', description: 'قراءة CT المخ: النزيف والجلطات والأورام مع حالات من الطوارئ', videoUrl: 'https://www.youtube.com/embed/JjPkTOabsX8', duration: '55:00', order: 2, homework: 'فرّق بين أنواع النزيف داخل الجمجمة في الصور', createdAt: '2026-01-22T10:00:00Z' },
+    { id: 'les_009', courseId: 'crs_003', title: 'CT الصدر والبطن - حالات عملية', description: 'قراءة CT الصدر والبطن: الانصباب والأورام وتمدد الشريان الأورطي', videoUrl: 'https://www.youtube.com/embed/JjPkTOabsX8', duration: '60:00', order: 3, homework: 'حلل 3 حالات CT صدر وحدد التشخيص', createdAt: '2026-01-23T10:00:00Z' },
 
-    // حديث تانية إعدادي
-    { id: 'les_008', courseId: 'crs_004', title: 'حديث: إنما الأعمال بالنيات', description: 'شرح حديث عمر بن الخطاب رضي الله عنه في النية وأهميتها في العبادات', videoUrl: 'https://www.youtube.com/embed/JjPkTOabsX8', duration: '35:00', order: 1, homework: 'استخرج الفوائد المستنبطة من الحديث', createdAt: '2026-01-19T10:00:00Z' },
-    { id: 'les_009', courseId: 'crs_004', title: 'حديث: بُني الإسلام على خمس', description: 'شرح حديث ابن عمر رضي الله عنهما في أركان الإسلام', videoUrl: 'https://www.youtube.com/embed/JjPkTOabsX8', duration: '40:00', order: 2, homework: 'اشرح كل ركن من أركان الإسلام مع الدليل', createdAt: '2026-01-20T10:00:00Z' },
+    // Emergency Radiology
+    { id: 'les_010', courseId: 'crs_004', title: 'أشعة الطوارئ - الصدر الحاد', description: 'الاسترواح الصدري والانصباب الجنبي وذات الرئة الحادة في الأشعة', videoUrl: 'https://www.youtube.com/embed/JjPkTOabsX8', duration: '45:00', order: 1, homework: 'حدد علامات الاسترواح الصدري في الأشعة', createdAt: '2026-02-02T10:00:00Z' },
+    { id: 'les_011', courseId: 'crs_004', title: 'أشعة الطوارئ - البطن الحاد', description: 'الانسداد المعوي وثقب الأمعاء والتهاب الزائدة الدودية والتواء الأمعاء', videoUrl: 'https://www.youtube.com/embed/JjPkTOabsX8', duration: '50:00', order: 2, homework: 'اشرح علامات الانسداد المعوي في الأشعة العادية وCT', createdAt: '2026-02-03T10:00:00Z' },
 
-    // تفسير تالتة إعدادي
-    { id: 'les_010', courseId: 'crs_005', title: 'تفسير سورة الفاتحة', description: 'تفسير سورة الفاتحة كلمة كلمة مع بيان فضلها وأحكامها', videoUrl: 'https://www.youtube.com/embed/JjPkTOabsX8', duration: '45:00', order: 1, homework: 'اكتب معاني الكلمات الصعبة في السورة', createdAt: '2026-02-02T10:00:00Z' },
-    { id: 'les_011', courseId: 'crs_005', title: 'تفسير سورة الناس والفلق', description: 'تفسير المعوذتين مع بيان أسباب النزول والفوائد المستنبطة', videoUrl: 'https://www.youtube.com/embed/JjPkTOabsX8', duration: '40:00', order: 2, homework: 'قارن بين سورة الناس وسورة الفلق', createdAt: '2026-02-03T10:00:00Z' },
+    // MRI
+    { id: 'les_012', courseId: 'crs_005', title: 'فيزياء الرنين المغناطيسي MRI', description: 'أساسيات فيزياء MRI: T1 وT2 وFLAIR وDiffusion وكيفية اختيار البروتوكول المناسب', videoUrl: 'https://www.youtube.com/embed/JjPkTOabsX8', duration: '60:00', order: 1, homework: 'فرّق بين T1 وT2 في صور MRI المخ', createdAt: '2026-02-06T10:00:00Z' },
+    { id: 'les_013', courseId: 'crs_005', title: 'MRI المخ والعمود الفقري', description: 'قراءة MRI الجهاز العصبي: الأورام والتصلب المتعدد والانزلاق الغضروفي', videoUrl: 'https://www.youtube.com/embed/JjPkTOabsX8', duration: '55:00', order: 2, homework: 'حلل 3 حالات MRI مخ وحدد التشخيص', createdAt: '2026-02-07T10:00:00Z' },
+    { id: 'les_014', courseId: 'crs_005', title: 'MRI المفاصل والأنسجة الرخوة', description: 'قراءة MRI الركبة والكتف: تمزق الأربطة والغضاريف وإصابات الكفة المدورة', videoUrl: 'https://www.youtube.com/embed/JjPkTOabsX8', duration: '50:00', order: 3, homework: 'حدد إصابات الرباط الصليبي في صور MRI الركبة', createdAt: '2026-02-08T10:00:00Z' },
 
-    // فقه أولى ثانوي
-    { id: 'les_012', courseId: 'crs_006', title: 'أحكام البيوع - الشروط والأركان', description: 'شرح أركان عقد البيع وشروطه والبيوع المنهي عنها في الشريعة', videoUrl: 'https://www.youtube.com/embed/JjPkTOabsX8', duration: '50:00', order: 1, homework: 'اذكر شروط البيع الصحيح مع التمثيل', createdAt: '2026-02-06T10:00:00Z' },
-    { id: 'les_013', courseId: 'crs_006', title: 'البيوع المنهي عنها', description: 'شرح أنواع البيوع المحرمة: بيع الغرر وبيع النجش وبيع الحاضر للبادي', videoUrl: 'https://www.youtube.com/embed/JjPkTOabsX8', duration: '45:00', order: 2, homework: 'قارن بين البيوع المنهي عنها مع ذكر العلة', createdAt: '2026-02-07T10:00:00Z' },
-    { id: 'les_014', courseId: 'crs_006', title: 'أحكام الربا وأنواعه', description: 'شرح تحريم الربا وأنواعه: ربا الفضل وربا النسيئة مع الأدلة', videoUrl: 'https://www.youtube.com/embed/JjPkTOabsX8', duration: '55:00', order: 3, homework: 'اكتب بحثاً مختصراً عن أضرار الربا', createdAt: '2026-02-08T10:00:00Z' },
+    // Interventional Radiology
+    { id: 'les_015', courseId: 'crs_006', title: 'مقدمة في الأشعة التداخلية', description: 'مبادئ الأشعة التداخلية: أنواع الإجراءات والأدوات المستخدمة والمؤشرات السريرية', videoUrl: 'https://www.youtube.com/embed/JjPkTOabsX8', duration: '45:00', order: 1, homework: 'اذكر 5 إجراءات تداخلية شائعة مع مؤشراتها', createdAt: '2026-02-11T10:00:00Z' },
+    { id: 'les_016', courseId: 'crs_006', title: 'الخزعات الموجهة بالأشعة', description: 'أنواع الخزعات الموجهة بالموجات فوق الصوتية وCT: التقنية والمضاعفات', videoUrl: 'https://www.youtube.com/embed/JjPkTOabsX8', duration: '50:00', order: 2, homework: 'قارن بين الخزعة الموجهة بـ US وCT', createdAt: '2026-02-12T10:00:00Z' },
 
-    // توحيد أولى ثانوي
-    { id: 'les_015', courseId: 'crs_007', title: 'الأدلة العقلية على وجود الله', description: 'دراسة الأدلة العقلية على وجود الله: دليل الحدوث ودليل النظام', videoUrl: 'https://www.youtube.com/embed/JjPkTOabsX8', duration: '50:00', order: 1, homework: 'اشرح دليل الحدوث بأسلوبك الخاص', createdAt: '2026-02-09T10:00:00Z' },
-    { id: 'les_016', courseId: 'crs_007', title: 'صفات الله تعالى الواجبة والمستحيلة', description: 'شرح الصفات الواجبة لله تعالى والصفات المستحيلة عليه مع الأدلة', videoUrl: 'https://www.youtube.com/embed/JjPkTOabsX8', duration: '55:00', order: 2, homework: 'اذكر عشرين صفة واجبة لله مع معانيها', createdAt: '2026-02-10T10:00:00Z' },
+    // بروتوكولات التصوير
+    { id: 'les_017', courseId: 'crs_007', title: 'بروتوكولات الأشعة العادية', description: 'الوضعيات الصحيحة لتصوير الصدر والبطن والأطراف مع معايير الجودة', videoUrl: 'https://www.youtube.com/embed/JjPkTOabsX8', duration: '40:00', order: 1, homework: 'اكتب بروتوكول تصوير أشعة صدر PA و Lateral', createdAt: '2026-02-16T10:00:00Z' },
+    { id: 'les_018', courseId: 'crs_007', title: 'بروتوكولات CT المتقدمة', description: 'إعدادات CT: kV وmA وسُمك المقاطع وبروتوكولات الصبغة الوريدية', videoUrl: 'https://www.youtube.com/embed/JjPkTOabsX8', duration: '50:00', order: 2, homework: 'صمم بروتوكول CT بطن بالصبغة', createdAt: '2026-02-17T10:00:00Z' },
+    { id: 'les_019', courseId: 'crs_007', title: 'معايير جودة الصورة الإشعاعية', description: 'تقييم جودة الصورة: التباين والوضوح والضوضاء وكيفية تحسينها', videoUrl: 'https://www.youtube.com/embed/JjPkTOabsX8', duration: '35:00', order: 3, homework: 'حدد مشاكل الجودة في الصور المرفقة واقترح حلول', createdAt: '2026-02-18T10:00:00Z' },
 
-    // فقه تانية ثانوي
-    { id: 'les_017', courseId: 'crs_008', title: 'أحكام النكاح - الأركان والشروط', description: 'شرح أركان عقد النكاح وشروطه والموانع الشرعية', videoUrl: 'https://www.youtube.com/embed/JjPkTOabsX8', duration: '50:00', order: 1, homework: 'لخّص أركان النكاح وشروطه في جدول', createdAt: '2026-02-11T10:00:00Z' },
-    { id: 'les_018', courseId: 'crs_008', title: 'أحكام الميراث - أصحاب الفروض', description: 'شرح أصحاب الفروض المقدرة في القرآن ونصيب كل منهم', videoUrl: 'https://www.youtube.com/embed/JjPkTOabsX8', duration: '60:00', order: 2, homework: 'حل مسائل المواريث في الكتاب صفحة 45', createdAt: '2026-02-12T10:00:00Z' },
-
-    // حديث تانية ثانوي
-    { id: 'les_019', courseId: 'crs_009', title: 'مصطلح الحديث - أنواع الحديث', description: 'تقسيمات الحديث: الصحيح والحسن والضعيف ومعايير القبول والرد', videoUrl: 'https://www.youtube.com/embed/JjPkTOabsX8', duration: '45:00', order: 1, homework: 'عرّف كل نوع من أنواع الحديث مع التمثيل', createdAt: '2026-02-13T10:00:00Z' },
-    { id: 'les_020', courseId: 'crs_009', title: 'شرح أحاديث من صحيح البخاري', description: 'شرح أحاديث مختارة من كتاب الإيمان في صحيح البخاري', videoUrl: 'https://www.youtube.com/embed/JjPkTOabsX8', duration: '50:00', order: 2, homework: 'استخرج الأحكام الفقهية من الأحاديث المشروحة', createdAt: '2026-02-14T10:00:00Z' },
-
-    // فقه تالتة ثانوي
-    { id: 'les_021', courseId: 'crs_010', title: 'أحكام الجنايات في الإسلام', description: 'شرح أحكام القصاص والديات وأنواع الجنايات وعقوباتها', videoUrl: 'https://www.youtube.com/embed/JjPkTOabsX8', duration: '55:00', order: 1, homework: 'لخّص أنواع الجنايات وعقوبة كل نوع', createdAt: '2026-02-16T10:00:00Z' },
-    { id: 'les_022', courseId: 'crs_010', title: 'أحكام الحدود الشرعية', description: 'شرح الحدود المقررة شرعاً وشروط إقامتها', videoUrl: 'https://www.youtube.com/embed/JjPkTOabsX8', duration: '50:00', order: 2, homework: 'اكتب شروط إقامة كل حد مع الأدلة', createdAt: '2026-02-17T10:00:00Z' },
-    { id: 'les_023', courseId: 'crs_010', title: 'أحكام القضاء والشهادة', description: 'شرح آداب القضاء وشروط القاضي وأحكام الشهادة ونصابها', videoUrl: 'https://www.youtube.com/embed/JjPkTOabsX8', duration: '45:00', order: 3, homework: 'قارن بين شروط القاضي وشروط الشاهد', createdAt: '2026-02-18T10:00:00Z' },
-
-    // تفسير تالتة ثانوي
-    { id: 'les_024', courseId: 'crs_011', title: 'تفسير آيات الأحكام من سورة البقرة', description: 'تفسير آيات الصيام والحج من سورة البقرة مع استنباط الأحكام الفقهية', videoUrl: 'https://www.youtube.com/embed/JjPkTOabsX8', duration: '60:00', order: 1, homework: 'استخرج الأحكام الفقهية من آيات الصيام', createdAt: '2026-02-19T10:00:00Z' },
-    { id: 'les_025', courseId: 'crs_011', title: 'تفسير آيات الأحكام من سورة آل عمران', description: 'تفسير آيات مختارة من سورة آل عمران مع التركيز على الأحكام الشرعية', videoUrl: 'https://www.youtube.com/embed/JjPkTOabsX8', duration: '55:00', order: 2, homework: 'اكتب الأحكام المستنبطة من الآيات المشروحة', createdAt: '2026-02-20T10:00:00Z' }
+    // الوقاية من الإشعاع
+    { id: 'les_020', courseId: 'crs_008', title: 'أساسيات الفيزياء الإشعاعية والجرعات', description: 'أنواع الإشعاع ووحدات القياس وحدود الجرعات المسموحة للعاملين والمرضى', videoUrl: 'https://www.youtube.com/embed/JjPkTOabsX8', duration: '40:00', order: 1, homework: 'احسب الجرعة الفعالة لإجراءات أشعة مختلفة', createdAt: '2026-02-21T10:00:00Z' },
+    { id: 'les_021', courseId: 'crs_008', title: 'وسائل الحماية من الإشعاع', description: 'أدوات الوقاية: المريلة الرصاصية وواقي الغدة الدرقية وقواعد الزمن والمسافة والحواجز', videoUrl: 'https://www.youtube.com/embed/JjPkTOabsX8', duration: '35:00', order: 2, homework: 'صمم خطة وقاية إشعاعية لغرفة أشعة مقطعية', createdAt: '2026-02-22T10:00:00Z' }
   ];
   Storage.save('lessons', lessons);
 
-  // Seed notes - ملازم شرعية
+  // Seed notes
   const notes = [
-    { id: 'note_001', title: 'ملزمة الفقه الشافعي - أولى إعدادي أزهري', type: 'note', grade: '1st_prep', fileUrl: '#', createdAt: '2026-02-01T10:00:00Z' },
-    { id: 'note_002', title: 'امتحان التوحيد - أولى إعدادي أزهري', type: 'exam', grade: '1st_prep', fileUrl: '#', createdAt: '2026-02-05T10:00:00Z' },
-    { id: 'note_003', title: 'ملزمة الفقه - تانية إعدادي أزهري', type: 'note', grade: '2nd_prep', fileUrl: '#', createdAt: '2026-02-08T10:00:00Z' },
-    { id: 'note_004', title: 'مراجعة نهائية حديث - تانية إعدادي', type: 'exam', grade: '2nd_prep', fileUrl: '#', createdAt: '2026-02-10T10:00:00Z' },
-    { id: 'note_005', title: 'ملزمة التفسير - تالتة إعدادي أزهري', type: 'note', grade: '3rd_prep', fileUrl: '#', createdAt: '2026-02-12T10:00:00Z' },
-    { id: 'note_006', title: 'ملزمة الفقه الشافعي - أولى ثانوي أزهري', type: 'note', grade: '1st_secondary', fileUrl: '#', createdAt: '2026-02-15T10:00:00Z' },
-    { id: 'note_007', title: 'امتحان التوحيد - أولى ثانوي أزهري', type: 'exam', grade: '1st_secondary', fileUrl: '#', createdAt: '2026-02-18T10:00:00Z' },
-    { id: 'note_008', title: 'ملزمة الحديث وعلومه - تانية ثانوي', type: 'note', grade: '2nd_secondary', fileUrl: '#', createdAt: '2026-02-20T10:00:00Z' },
-    { id: 'note_009', title: 'مراجعة نهائية فقه - تالتة ثانوي أزهري', type: 'note', grade: '3rd_secondary', fileUrl: '#', createdAt: '2026-02-22T10:00:00Z' },
-    { id: 'note_010', title: 'نموذج امتحان تفسير - تالتة ثانوي أزهري', type: 'exam', grade: '3rd_secondary', fileUrl: '#', createdAt: '2026-02-25T10:00:00Z' }
+    { id: 'note_001', title: 'أطلس أشعة الصدر - Chest X-Ray Atlas', type: 'note', grade: 'med_student', fileUrl: '#', createdAt: '2026-02-01T10:00:00Z' },
+    { id: 'note_002', title: 'امتحان أساسيات الأشعة - طلاب طب', type: 'exam', grade: 'med_student', fileUrl: '#', createdAt: '2026-02-05T10:00:00Z' },
+    { id: 'note_003', title: 'ملزمة CT المخ - حالات وتشخيصات', type: 'note', grade: 'intern', fileUrl: '#', createdAt: '2026-02-08T10:00:00Z' },
+    { id: 'note_004', title: 'امتحان حالات طوارئ في الأشعة', type: 'exam', grade: 'intern', fileUrl: '#', createdAt: '2026-02-10T10:00:00Z' },
+    { id: 'note_005', title: 'ملزمة فيزياء MRI الشاملة', type: 'note', grade: 'specialist', fileUrl: '#', createdAt: '2026-02-12T10:00:00Z' },
+    { id: 'note_006', title: 'أطلس MRI المخ والعمود الفقري', type: 'note', grade: 'specialist', fileUrl: '#', createdAt: '2026-02-15T10:00:00Z' },
+    { id: 'note_007', title: 'دليل بروتوكولات التصوير المعتمدة', type: 'note', grade: 'technician', fileUrl: '#', createdAt: '2026-02-18T10:00:00Z' },
+    { id: 'note_008', title: 'امتحان الوقاية من الإشعاع', type: 'exam', grade: 'technician', fileUrl: '#', createdAt: '2026-02-20T10:00:00Z' }
   ];
   Storage.save('notes', notes);
 
@@ -141,23 +119,23 @@
   const studentHash = await Auth.hashPassword('123456');
   const students = [
     {
-      id: 'stu_001', fullName: 'محمد أحمد عبدالرحمن', gender: 'male', governorate: 'القاهرة',
-      grade: '1st_prep', phone: '01012345678', passwordHash: studentHash,
+      id: 'stu_001', fullName: 'أحمد محمد السيد', gender: 'male', governorate: 'القاهرة',
+      grade: 'med_student', phone: '01012345678', passwordHash: studentHash,
       avatarDataUrl: null, isActive: true, createdAt: '2026-01-10T10:00:00Z'
     },
     {
-      id: 'stu_002', fullName: 'عبدالله محمود حسن', gender: 'male', governorate: 'الجيزة',
-      grade: '2nd_secondary', phone: '01098765432', passwordHash: studentHash,
+      id: 'stu_002', fullName: 'سارة أحمد حسن', gender: 'female', governorate: 'الجيزة',
+      grade: 'intern', phone: '01098765432', passwordHash: studentHash,
       avatarDataUrl: null, isActive: true, createdAt: '2026-01-12T10:00:00Z'
     },
     {
-      id: 'stu_003', fullName: 'يوسف إبراهيم السيد', gender: 'male', governorate: 'الإسكندرية',
-      grade: '3rd_secondary', phone: '01155544433', passwordHash: studentHash,
+      id: 'stu_003', fullName: 'محمد إبراهيم عبدالله', gender: 'male', governorate: 'الإسكندرية',
+      grade: 'specialist', phone: '01155544433', passwordHash: studentHash,
       avatarDataUrl: null, isActive: true, createdAt: '2026-01-15T10:00:00Z'
     },
     {
-      id: 'stu_004', fullName: 'أحمد علي مصطفى', gender: 'male', governorate: 'الدقهلية',
-      grade: '1st_secondary', phone: '01277788899', passwordHash: studentHash,
+      id: 'stu_004', fullName: 'نورهان علي مصطفى', gender: 'female', governorate: 'المنيا',
+      grade: 'technician', phone: '01277788899', passwordHash: studentHash,
       avatarDataUrl: null, isActive: true, createdAt: '2026-01-20T10:00:00Z'
     }
   ];
@@ -167,28 +145,23 @@
   const subscriptions = [
     {
       id: 'sub_001', studentId: 'stu_001', courseId: 'crs_001', status: 'approved',
-      paymentMethod: 'vodafone_cash', paymentReference: '01012345678', amount: 80,
+      paymentMethod: 'vodafone_cash', paymentReference: '01012345678', amount: 200,
       requestedAt: '2026-01-11T12:00:00Z', approvedAt: '2026-01-11T14:00:00Z', notes: ''
     },
     {
-      id: 'sub_002', studentId: 'stu_001', courseId: 'crs_002', status: 'approved',
-      paymentMethod: 'vodafone_cash', paymentReference: '01012345678', amount: 80,
-      requestedAt: '2026-01-13T12:00:00Z', approvedAt: '2026-01-13T14:00:00Z', notes: ''
+      id: 'sub_002', studentId: 'stu_002', courseId: 'crs_003', status: 'approved',
+      paymentMethod: 'instapay', paymentReference: '01098765432', amount: 350,
+      requestedAt: '2026-01-21T10:00:00Z', approvedAt: '2026-01-21T12:00:00Z', notes: ''
     },
     {
-      id: 'sub_003', studentId: 'stu_002', courseId: 'crs_008', status: 'approved',
-      paymentMethod: 'instapay', paymentReference: '01098765432', amount: 180,
-      requestedAt: '2026-02-11T10:00:00Z', approvedAt: '2026-02-11T12:00:00Z', notes: ''
+      id: 'sub_003', studentId: 'stu_003', courseId: 'crs_005', status: 'pending',
+      paymentMethod: 'vodafone_cash', paymentReference: '01155544433', amount: 500,
+      requestedAt: '2026-02-06T10:00:00Z', approvedAt: null, notes: ''
     },
     {
-      id: 'sub_004', studentId: 'stu_003', courseId: 'crs_010', status: 'pending',
-      paymentMethod: 'vodafone_cash', paymentReference: '01155544433', amount: 200,
+      id: 'sub_004', studentId: 'stu_004', courseId: 'crs_007', status: 'pending',
+      paymentMethod: 'instapay', paymentReference: '01277788899', amount: 200,
       requestedAt: '2026-02-16T10:00:00Z', approvedAt: null, notes: ''
-    },
-    {
-      id: 'sub_005', studentId: 'stu_004', courseId: 'crs_006', status: 'pending',
-      paymentMethod: 'instapay', paymentReference: '01277788899', amount: 150,
-      requestedAt: '2026-02-20T10:00:00Z', approvedAt: null, notes: ''
     }
   ];
   Storage.save('subscriptions', subscriptions);
@@ -197,7 +170,7 @@
   const progress = [
     { id: 'prog_001', studentId: 'stu_001', courseId: 'crs_001', lessonId: 'les_001', completed: true, completedAt: '2026-01-12T10:00:00Z' },
     { id: 'prog_002', studentId: 'stu_001', courseId: 'crs_001', lessonId: 'les_002', completed: true, completedAt: '2026-01-14T10:00:00Z' },
-    { id: 'prog_003', studentId: 'stu_002', courseId: 'crs_008', lessonId: 'les_017', completed: true, completedAt: '2026-02-13T10:00:00Z' }
+    { id: 'prog_003', studentId: 'stu_002', courseId: 'crs_003', lessonId: 'les_007', completed: true, completedAt: '2026-01-23T10:00:00Z' }
   ];
   Storage.save('progress', progress);
 

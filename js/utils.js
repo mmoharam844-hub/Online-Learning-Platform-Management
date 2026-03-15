@@ -204,7 +204,7 @@ const Utils = {
     return `
       <div class="container">
         <a href="index.html" class="header-logo">
-          <img src="assets/images/teacher.png" alt="${APP_CONFIG.TEACHER_NAME}">
+          <img src="assets/images/logo.svg" alt="${APP_CONFIG.TEACHER_NAME}">
           <span>${APP_CONFIG.TEACHER_NAME}</span>
         </a>
         <button class="mobile-toggle" onclick="document.querySelector('.header-nav').classList.toggle('open')">
@@ -232,7 +232,7 @@ const Utils = {
 
     return `
       <div class="sidebar-logo">
-        <img src="../assets/images/teacher.png" alt="${APP_CONFIG.TEACHER_NAME}">
+        <img src="../assets/images/logo.svg" alt="${APP_CONFIG.TEACHER_NAME}">
         <span>لوحة التحكم</span>
       </div>
       <nav class="sidebar-nav">
