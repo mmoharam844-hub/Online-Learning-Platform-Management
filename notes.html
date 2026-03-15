@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>الملازم والامتحانات - منصة أ/ أمين خليل</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/pages/dashboard.css">
+</head>
+<body data-page="notes">
+
+  <header class="header" id="header"></header>
+
+  <main class="container" style="padding-top: var(--space-xl); padding-bottom: var(--space-3xl);">
+    <div class="page-header" style="text-align: right;">
+      <h1><i class="fas fa-file-pdf"></i> الملازم والامتحانات</h1>
+      <p>ملازم ومذكرات PDF وامتحانات لجميع الصفوف</p>
+    </div>
+
+    <!-- Filters -->
+    <div class="tabs" id="gradeTabs">
+      <button class="tab active" onclick="filterNotes('all', this)">الكل</button>
+    </div>
+
+    <div class="tabs" style="border-bottom: none; margin-bottom: var(--space-md);">
+      <button class="tab active" onclick="filterType('all', this)" data-filter="type">الكل</button>
+      <button class="tab" onclick="filterType('note', this)" data-filter="type">
+        <i class="fas fa-file-alt"></i> ملازم
+      </button>
+      <button class="tab" onclick="filterType('exam', this)" data-filter="type">
+        <i class="fas fa-pen"></i> امتحانات
+      </button>
+    </div>
+
+    <div class="grid grid-3" id="notesGrid">
+      <div class="empty-state" style="grid-column: 1/-1;">
+        <i class="fas fa-spinner fa-spin"></i>
+        <p>جاري التحميل...</p>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>جميع الحقوق محفوظة &copy; Mr.Amin 2026</p>
+    </div>
+  </footer>
+
+  <div id="toast-container"></div>
+
+  <script src="js/config.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/seed.js"></script>
+  <script>
+    if (!Auth.requireAuth()) throw new Error('redirect');
+
+    const user = Auth.getCurrentUser();
+    document.getElementById('header').innerHTML = Utils.renderHeader('notes');
+
+    let currentGrade = 'all';
+    let currentType = 'all';
+
+    // Build grade tabs
+    const gradeTabs = document.getElementById('gradeTabs');
+    APP_CONFIG.GRADES.forEach(g => {
+      const btn = document.createElement('button');
+      btn.className = 'tab';
+      if (g.value === user.grade) btn.className += ' active';
+      btn.textContent = g.label;
+      btn.onclick = () => filterNotes(g.value, btn);
+      gradeTabs.appendChild(btn);
+    });
+
+    // Default to student's grade
+    currentGrade = user.grade;
+    gradeTabs.querySelector('.tab:first-child').classList.remove('active');
+
+    function filterNotes(grade, btn) {
+      currentGrade = grade;
+      gradeTabs.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+      renderNotes();
+    }
+
+    function filterType(type, btn) {
+      currentType = type;
+      btn.parentElement.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+      renderNotes();
+    }
+
+    function renderNotes() {
+      let notes = Storage.getAll('notes');
+
+      if (currentGrade !== 'all') {
+        notes = notes.filter(n => n.grade === currentGrade);
+      }
+      if (currentType !== 'all') {
+        notes = notes.filter(n => n.type === currentType);
+      }
+
+      const grid = document.getElementById('notesGrid');
+
+      if (notes.length === 0) {
+        grid.innerHTML = `
+          <div class="empty-state" style="grid-column: 1/-1;">
+            <i class="fas fa-file-alt"></i>
+            <h3>لا توجد ملازم أو امتحانات</h3>
+            <p>سيتم إضافة ملازم جديدة قريباً</p>
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = notes.map(note => `
+        <div class="card">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+            <div style="width: 50px; height: 50px; border-radius: 10px; background: ${note.type === 'exam' ? 'rgba(245,158,11,0.15)' : 'rgba(59,130,246,0.15)'}; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; color: ${note.type === 'exam' ? 'var(--color-warning)' : 'var(--color-primary)'};">
+              <i class="fas ${note.type === 'exam' ? 'fa-pen' : 'fa-file-pdf'}"></i>
+            </div>
+            <div>
+              <h4 style="margin-bottom: 2px;">${note.title}</h4>
+              <div style="display: flex; gap: 8px;">
+                <span class="badge ${note.type === 'exam' ? 'badge-warning' : 'badge-info'}">${note.type === 'exam' ? 'امتحان' : 'ملزمة'}</span>
+                <span class="badge badge-primary">${Utils.getGradeLabel(note.grade)}</span>
+              </div>
+            </div>
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
+            <i class="fas fa-calendar"></i> ${Utils.formatDate(note.createdAt)}
+          </p>
+          <a href="${note.fileUrl || note.fileDataUrl || '#'}" target="_blank" class="btn btn-primary btn-block btn-sm">
+            <i class="fas fa-download"></i> تحميل
+          </a>
+        </div>
+      `).join('');
+    }
+
+    renderNotes();
+  </script>
+</body>
+</html>

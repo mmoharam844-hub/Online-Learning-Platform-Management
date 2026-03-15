@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>إدارة الدروس - منصة أ/ أمين خليل</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/pages/admin.css">
+</head>
+<body data-page="admin-lessons">
+
+  <div class="admin-layout">
+    <button class="sidebar-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">
+      <i class="fas fa-bars"></i>
+    </button>
+
+    <aside class="sidebar" id="sidebar"></aside>
+
+    <main class="admin-main">
+      <div class="admin-header">
+        <h1><i class="fas fa-video"></i> إدارة الدروس</h1>
+      </div>
+
+      <!-- Course Selector -->
+      <div class="admin-card">
+        <div class="filter-row">
+          <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 250px;">
+            <label for="courseSelect"><i class="fas fa-book"></i> اختر الكورس</label>
+            <select id="courseSelect" class="form-control" onchange="loadLessons(this.value)">
+              <option value="">-- اختر كورس لعرض دروسه --</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lessons Section (hidden until course selected) -->
+      <div id="lessonsSection" style="display: none;">
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h2><i class="fas fa-list-ol"></i> دروس الكورس</h2>
+            <button class="btn btn-primary btn-sm" onclick="openAddLessonModal()">
+              <i class="fas fa-plus"></i> إضافة درس
+            </button>
+          </div>
+
+          <div id="lessonsTableContainer"></div>
+        </div>
+      </div>
+
+      <!-- Empty state when no course selected -->
+      <div id="noCourseSelected">
+        <div class="admin-card">
+          <div class="empty-state">
+            <i class="fas fa-hand-pointer"></i>
+            <h3>اختر كورس من القائمة أعلاه</h3>
+            <p>قم باختيار كورس لعرض وإدارة الدروس الخاصة به</p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Lesson Modal -->
+  <div class="modal-overlay" id="lessonModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="lessonModalTitle">إضافة درس جديد</h3>
+        <button class="modal-close" onclick="Utils.hideModal('lessonModal')">&times;</button>
+      </div>
+      <form id="lessonForm" onsubmit="saveLesson(event)">
+        <input type="hidden" id="lessonId" value="">
+
+        <div class="form-group">
+          <label for="lessonTitle">عنوان الدرس *</label>
+          <input type="text" id="lessonTitle" name="title" class="form-control" placeholder="أدخل عنوان الدرس" required>
+        </div>
+
+        <div class="form-group">
+          <label for="lessonDescription">وصف الدرس</label>
+          <textarea id="lessonDescription" name="description" class="form-control" rows="3" placeholder="أدخل وصف مختصر للدرس"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="lessonVideoUrl">رابط الفيديو (YouTube Embed)</label>
+          <input type="url" id="lessonVideoUrl" name="videoUrl" class="form-control" dir="ltr" placeholder="https://www.youtube.com/embed/VIDEO_ID">
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md);">
+          <div class="form-group">
+            <label for="lessonDuration">المدة (بالدقائق)</label>
+            <input type="text" id="lessonDuration" name="duration" class="form-control" placeholder="مثال: 45 دقيقة">
+          </div>
+
+          <div class="form-group">
+            <label for="lessonOrder">الترتيب *</label>
+            <input type="number" id="lessonOrder" name="order" class="form-control" placeholder="1" min="1" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="lessonHomework">الواجب</label>
+          <textarea id="lessonHomework" name="homework" class="form-control" rows="3" placeholder="أدخل تفاصيل الواجب (اختياري)"></textarea>
+        </div>
+
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save"></i> حفظ
+          </button>
+          <button type="button" class="btn btn-secondary" onclick="Utils.hideModal('lessonModal')">
+            إلغاء
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <script src="../js/config.js"></script>
+  <script src="../js/storage.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/utils.js"></script>
+  <script src="../js/seed.js"></script>
+  <script>
+    if (!Auth.requireAdmin('index.html')) throw new Error('redirect');
+
+    document.getElementById('sidebar').innerHTML = Utils.renderAdminSidebar('lessons');
+
+    let selectedCourseId = '';
+
+    // Load courses into the dropdown
+    function loadCourses() {
+      const courses = Storage.getAll('courses');
+      const select = document.getElementById('courseSelect');
+      select.innerHTML = '<option value="">-- اختر كورس لعرض دروسه --</option>';
+      courses.forEach(course => {
+        const option = document.createElement('option');
+        option.value = course.id;
+        option.textContent = course.name + ' (' + Utils.getGradeLabel(course.grade) + ')';
+        select.appendChild(option);
+      });
+    }
+
+    // Load lessons for a specific course
+    function loadLessons(courseId) {
+      selectedCourseId = courseId;
+      const lessonsSection = document.getElementById('lessonsSection');
+      const noCourseSelected = document.getElementById('noCourseSelected');
+
+      if (!courseId) {
+        lessonsSection.style.display = 'none';
+        noCourseSelected.style.display = 'block';
+        return;
+      }
+
+      lessonsSection.style.display = 'block';
+      noCourseSelected.style.display = 'none';
+
+      const lessons = Storage.query('lessons', l => l.courseId === courseId);
+      lessons.sort((a, b) => (a.order || 0) - (b.order || 0));
+
+      const container = document.getElementById('lessonsTableContainer');
+
+      if (lessons.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <i class="fas fa-video"></i>
+            <h3>لا توجد دروس بعد</h3>
+            <p>اضغط على زر "إضافة درس" لإضافة أول درس لهذا الكورس</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = `
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>الترتيب</th>
+                <th>العنوان</th>
+                <th>رابط الفيديو</th>
+                <th>المدة</th>
+                <th>إجراءات</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${lessons.map(lesson => `
+                <tr>
+                  <td>
+                    <span class="badge badge-info">${lesson.order || '-'}</span>
+                  </td>
+                  <td>
+                    <strong>${lesson.title}</strong>
+                    ${lesson.description ? '<br><small style="color: var(--text-muted);">' + truncateText(lesson.description, 50) + '</small>' : ''}
+                  </td>
+                  <td>
+                    ${lesson.videoUrl
+                      ? '<a href="' + lesson.videoUrl + '" target="_blank" style="color: var(--color-primary);"><i class="fas fa-external-link-alt"></i> مشاهدة</a>'
+                      : '<span style="color: var(--text-muted);">-</span>'}
+                  </td>
+                  <td>${lesson.duration || '-'}</td>
+                  <td>
+                    <div class="table-actions">
+                      <button class="btn btn-sm btn-outline" onclick="openEditLessonModal('${lesson.id}')" title="تعديل">
+                        <i class="fas fa-edit"></i>
+                      </button>
+                      <button class="btn btn-sm btn-danger" onclick="deleteLesson('${lesson.id}')" title="حذف">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    // Truncate long text
+    function truncateText(text, maxLength) {
+      if (!text) return '';
+      if (text.length <= maxLength) return text;
+      return text.substring(0, maxLength) + '...';
+    }
+
+    // Open modal for adding a new lesson
+    function openAddLessonModal() {
+      if (!selectedCourseId) {
+        Utils.showToast('يرجى اختيار كورس أولاً', 'warning');
+        return;
+      }
+
+      document.getElementById('lessonModalTitle').textContent = 'إضافة درس جديد';
+      document.getElementById('lessonId').value = '';
+      document.getElementById('lessonForm').reset();
+
+      // Set default order to next available number
+      const lessons = Storage.query('lessons', l => l.courseId === selectedCourseId);
+      const maxOrder = lessons.reduce((max, l) => Math.max(max, l.order || 0), 0);
+      document.getElementById('lessonOrder').value = maxOrder + 1;
+
+      Utils.showModal('lessonModal');
+    }
+
+    // Open modal for editing an existing lesson
+    function openEditLessonModal(lessonId) {
+      const lesson = Storage.getById('lessons', lessonId);
+      if (!lesson) {
+        Utils.showToast('الدرس غير موجود', 'error');
+        return;
+      }
+
+      document.getElementById('lessonModalTitle').textContent = 'تعديل الدرس';
+      document.getElementById('lessonId').value = lesson.id;
+      document.getElementById('lessonTitle').value = lesson.title || '';
+      document.getElementById('lessonDescription').value = lesson.description || '';
+      document.getElementById('lessonVideoUrl').value = lesson.videoUrl || '';
+      document.getElementById('lessonDuration').value = lesson.duration || '';
+      document.getElementById('lessonOrder').value = lesson.order || 1;
+      document.getElementById('lessonHomework').value = lesson.homework || '';
+
+      Utils.showModal('lessonModal');
+    }
+
+    // Update the parent course's lessonsCount
+    function updateCourseLessonsCount(courseId) {
+      const lessons = Storage.query('lessons', l => l.courseId === courseId);
+      Storage.update('courses', courseId, { lessonsCount: lessons.length });
+    }
+
+    // Save lesson (create or update)
+    function saveLesson(e) {
+      e.preventDefault();
+
+      const lessonId = document.getElementById('lessonId').value;
+      const title = document.getElementById('lessonTitle').value.trim();
+      const description = document.getElementById('lessonDescription').value.trim();
+      const videoUrl = document.getElementById('lessonVideoUrl').value.trim();
+      const duration = document.getElementById('lessonDuration').value.trim();
+      const order = parseInt(document.getElementById('lessonOrder').value) || 1;
+      const homework = document.getElementById('lessonHomework').value.trim();
+
+      // Validation
+      if (!title) {
+        Utils.showToast('عنوان الدرس مطلوب', 'error');
+        return;
+      }
+
+      if (!selectedCourseId) {
+        Utils.showToast('يرجى اختيار كورس أولاً', 'error');
+        return;
+      }
+
+      const lessonData = {
+        title,
+        description,
+        videoUrl,
+        duration,
+        order,
+        homework,
+        courseId: selectedCourseId
+      };
+
+      if (lessonId) {
+        // Update existing lesson
+        Storage.update('lessons', lessonId, lessonData);
+        Utils.showToast('تم تحديث الدرس بنجاح', 'success');
+      } else {
+        // Create new lesson
+        Storage.add('lessons', lessonData);
+        Utils.showToast('تم إضافة الدرس بنجاح', 'success');
+      }
+
+      // Update course lessonsCount
+      updateCourseLessonsCount(selectedCourseId);
+
+      Utils.hideModal('lessonModal');
+      loadLessons(selectedCourseId);
+    }
+
+    // Delete a lesson
+    function deleteLesson(id) {
+      if (!Utils.confirm('هل أنت متأكد من حذف هذا الدرس؟ لا يمكن التراجع عن هذا الإجراء.')) {
+        return;
+      }
+
+      Storage.remove('lessons', id);
+      updateCourseLessonsCount(selectedCourseId);
+      Utils.showToast('تم حذف الدرس بنجاح', 'success');
+      loadLessons(selectedCourseId);
+    }
+
+    // Initialize page
+    loadCourses();
+
+    // Close sidebar on mobile when clicking a link
+    document.querySelectorAll('.sidebar-link').forEach(link => {
+      link.addEventListener('click', () => {
+        document.querySelector('.sidebar').classList.remove('open');
+      });
+    });
+  </script>
+</body>
+</html>

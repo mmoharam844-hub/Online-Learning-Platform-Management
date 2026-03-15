@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>دخول المدير - منصة أ/ أمين خليل</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/pages/admin.css">
+</head>
+<body>
+
+  <div class="admin-login-page">
+    <div class="admin-login-card">
+      <div class="auth-header">
+        <img src="../assets/images/teacher.png" alt="أ/ أمين خليل" style="width:80px;height:80px;border-radius:50%;margin:0 auto 16px;border:3px solid var(--color-primary);">
+        <h1 style="font-size: var(--font-size-2xl);">لوحة تحكم المعلم</h1>
+        <p style="color: var(--text-muted);">أدخل بيانات الدخول للمتابعة</p>
+      </div>
+
+      <form id="adminLoginForm">
+        <div class="form-group">
+          <label for="username"><i class="fas fa-user"></i> اسم المستخدم</label>
+          <input type="text" id="username" name="username" class="form-control" placeholder="أدخل اسم المستخدم" required>
+        </div>
+
+        <div class="form-group">
+          <label for="password"><i class="fas fa-lock"></i> كلمة المرور</label>
+          <div class="password-wrapper">
+            <input type="password" id="password" name="password" class="form-control" placeholder="أدخل كلمة المرور" required>
+            <button type="button" class="password-toggle" onclick="togglePw()">
+              <i class="fas fa-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block btn-lg">
+          <i class="fas fa-sign-in-alt"></i> دخول
+        </button>
+      </form>
+
+      <div style="text-align:center;margin-top:20px;">
+        <a href="../index.html" style="color:var(--text-muted);font-size:0.9rem;">
+          <i class="fas fa-home"></i> العودة للموقع الرئيسي
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <script src="../js/config.js"></script>
+  <script src="../js/storage.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/utils.js"></script>
+  <script src="../js/seed.js"></script>
+  <script>
+    function togglePw() {
+      const input = document.getElementById('password');
+      const icon = document.querySelector('.password-toggle i');
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.replace('fa-eye', 'fa-eye-slash');
+      } else {
+        input.type = 'password';
+        icon.classList.replace('fa-eye-slash', 'fa-eye');
+      }
+    }
+
+    document.getElementById('adminLoginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+
+      if (!username || !password) {
+        Utils.showToast('يرجى ملء جميع الحقول', 'error');
+        return;
+      }
+
+      const result = await Auth.adminLogin(username, password);
+      if (result.success) {
+        Utils.showToast(result.message, 'success');
+        setTimeout(() => window.location.href = 'dashboard.html', 500);
+      } else {
+        Utils.showToast(result.message, 'error');
+      }
+    });
+  </script>
+</body>
+</html>

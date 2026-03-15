@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>الاشتراك - منصة أ/ أمين خليل</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/pages/auth.css">
+</head>
+<body data-page="subscription">
+
+  <header class="header" id="header"></header>
+
+  <main class="container" style="padding-top: var(--space-xl); padding-bottom: var(--space-3xl);">
+    <div style="max-width: 600px; margin: 0 auto;">
+      <!-- Course Info -->
+      <div class="card" id="courseInfo" style="margin-bottom: var(--space-xl); text-align: center;">
+        <h2 id="courseName">جاري التحميل...</h2>
+        <p id="courseDesc"></p>
+        <div style="font-size: var(--font-size-3xl); font-weight: 800; color: var(--color-accent); margin-top: var(--space-md);">
+          <span id="coursePrice">0</span> جنيه
+        </div>
+      </div>
+
+      <!-- Subscription Form -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title"><i class="fas fa-credit-card"></i> بيانات الاشتراك</h3>
+        </div>
+
+        <form id="subscriptionForm">
+          <div class="form-group">
+            <label><i class="fas fa-user"></i> الاسم الثلاثي</label>
+            <input type="text" id="fullName" class="form-control" readonly>
+          </div>
+
+          <div class="form-group">
+            <label><i class="fas fa-phone"></i> رقم الهاتف</label>
+            <input type="text" id="phone" class="form-control" readonly>
+          </div>
+
+          <div class="form-group">
+            <label><i class="fas fa-graduation-cap"></i> الصف</label>
+            <input type="text" id="grade" class="form-control" readonly>
+          </div>
+
+          <div class="form-group">
+            <label><i class="fas fa-money-bill-wave"></i> طريقة الدفع</label>
+            <div class="radio-group">
+              <label class="radio-label">
+                <input type="radio" name="paymentMethod" value="vodafone_cash" required checked> فودافون كاش
+              </label>
+              <label class="radio-label">
+                <input type="radio" name="paymentMethod" value="instapay"> إنستاباي
+              </label>
+            </div>
+          </div>
+
+          <div class="alert alert-info" id="paymentInstructions">
+            <i class="fas fa-info-circle"></i>
+            <span>قم بتحويل المبلغ على رقم فودافون كاش: <strong>01012345678</strong></span>
+          </div>
+
+          <div class="form-group">
+            <label><i class="fas fa-receipt"></i> رقم المعاملة / رقم المحول منه</label>
+            <input type="text" id="paymentRef" name="paymentRef" class="form-control" placeholder="أدخل رقم الهاتف أو رقم المعاملة" required>
+          </div>
+
+          <button type="submit" class="btn btn-accent btn-block btn-lg">
+            <i class="fas fa-paper-plane"></i> إرسال طلب الاشتراك
+          </button>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>جميع الحقوق محفوظة &copy; Mr.Amin 2026</p>
+    </div>
+  </footer>
+
+  <div id="toast-container"></div>
+
+  <script src="js/config.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/seed.js"></script>
+  <script>
+    if (!Auth.requireAuth()) throw new Error('redirect');
+
+    const user = Auth.getCurrentUser();
+    const courseId = Utils.getParam('courseId');
+    document.getElementById('header').innerHTML = Utils.renderHeader('subscription');
+
+    // Fill user info
+    document.getElementById('fullName').value = user.fullName;
+    document.getElementById('phone').value = user.phone;
+    document.getElementById('grade').value = Utils.getGradeLabel(user.grade);
+
+    // Load course
+    if (courseId) {
+      const course = Storage.getById('courses', courseId);
+      if (course) {
+        document.getElementById('courseName').textContent = course.name;
+        document.getElementById('courseDesc').textContent = course.description;
+        document.getElementById('coursePrice').textContent = course.price;
+      }
+    }
+
+    // Payment method switch
+    document.querySelectorAll('input[name="paymentMethod"]').forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        const instructions = document.getElementById('paymentInstructions');
+        if (e.target.value === 'vodafone_cash') {
+          instructions.innerHTML = '<i class="fas fa-info-circle"></i><span>قم بتحويل المبلغ على رقم فودافون كاش: <strong>01012345678</strong></span>';
+        } else {
+          instructions.innerHTML = '<i class="fas fa-info-circle"></i><span>قم بالتحويل عبر إنستاباي إلى: <strong>teacher@instapay</strong></span>';
+        }
+      });
+    });
+
+    // Submit
+    document.getElementById('subscriptionForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+      const paymentRef = document.getElementById('paymentRef').value.trim();
+
+      if (!paymentRef) {
+        Utils.showToast('يرجى إدخال رقم المعاملة', 'error');
+        return;
+      }
+
+      // Check existing subscription
+      const existing = Storage.query('subscriptions', s => s.studentId === user.id && s.courseId === courseId);
+      if (existing.length > 0) {
+        Utils.showToast('لديك طلب اشتراك بالفعل لهذا الكورس', 'warning');
+        return;
+      }
+
+      const course = Storage.getById('courses', courseId);
+      Storage.add('subscriptions', {
+        studentId: user.id,
+        courseId: courseId,
+        status: 'pending',
+        paymentMethod,
+        paymentReference: paymentRef,
+        amount: course ? course.price : 0,
+        requestedAt: new Date().toISOString(),
+        approvedAt: null,
+        notes: ''
+      });
+
+      Utils.showToast('تم إرسال طلب الاشتراك بنجاح. سيتم مراجعته من قبل المعلم', 'success');
+      setTimeout(() => window.location.href = 'dashboard.html', 1500);
+    });
+  </script>
+</body>
+</html>

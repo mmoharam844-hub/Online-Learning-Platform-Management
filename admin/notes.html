@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>إدارة الملازم والامتحانات - منصة أ/ أمين خليل</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/pages/admin.css">
+</head>
+<body data-page="admin-notes">
+
+  <div class="admin-layout">
+    <button class="sidebar-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">
+      <i class="fas fa-bars"></i>
+    </button>
+
+    <aside class="sidebar" id="sidebar"></aside>
+
+    <main class="admin-main">
+      <div class="admin-header">
+        <h1><i class="fas fa-file-pdf"></i> إدارة الملازم والامتحانات</h1>
+        <button class="btn btn-primary" onclick="openAddModal()">
+          <i class="fas fa-plus"></i> إضافة ملزمة / امتحان
+        </button>
+      </div>
+
+      <!-- Grade Filter Tabs -->
+      <div class="tabs" id="gradeTabs">
+        <button class="tab active" data-grade="all" onclick="filterByGrade('all')">الكل</button>
+      </div>
+
+      <!-- Notes Table -->
+      <div class="admin-card">
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>العنوان</th>
+                <th>النوع</th>
+                <th>الصف</th>
+                <th>التاريخ</th>
+                <th>إجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="notesTableBody"></tbody>
+          </table>
+        </div>
+        <div id="emptyState" style="display: none;">
+          <div class="empty-state">
+            <i class="fas fa-file-pdf"></i>
+            <h3>لا توجد ملازم أو امتحانات</h3>
+            <p>اضغط على زر "إضافة ملزمة / امتحان" لإضافة محتوى جديد</p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Add/Edit Modal -->
+  <div class="modal-overlay" id="noteModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modalTitle">إضافة ملزمة / امتحان</h3>
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+      </div>
+      <form id="noteForm" onsubmit="saveNote(event)">
+        <input type="hidden" id="noteId" value="">
+
+        <div class="form-group">
+          <label for="noteTitle"><i class="fas fa-heading"></i> العنوان</label>
+          <input type="text" id="noteTitle" name="title" class="form-control" placeholder="أدخل عنوان الملزمة أو الامتحان" required>
+        </div>
+
+        <div class="form-group">
+          <label><i class="fas fa-tag"></i> النوع</label>
+          <div class="radio-group">
+            <label class="radio-label">
+              <input type="radio" name="type" value="note" checked>
+              <span>ملزمة</span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="type" value="exam">
+              <span>امتحان</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="noteGrade"><i class="fas fa-graduation-cap"></i> الصف الدراسي</label>
+          <select id="noteGrade" name="grade" class="form-control" required>
+            <option value="">اختر الصف...</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label><i class="fas fa-upload"></i> رفع ملف (PDF أو صورة)</label>
+          <input type="file" id="noteFile" class="form-control" accept=".pdf,.png,.jpg,.jpeg,.webp" onchange="handleFileSelect(this)">
+          <small id="fileInfo" style="display:block;margin-top:6px;color:var(--text-muted);font-size:var(--font-size-xs);"></small>
+          <small id="fileWarning" style="display:none;margin-top:4px;color:var(--color-warning);font-size:var(--font-size-xs);">
+            <i class="fas fa-exclamation-triangle"></i> حجم الملف كبير (أكثر من 500KB). قد يؤثر على أداء التخزين المحلي.
+          </small>
+          <small id="fileError" style="display:none;margin-top:4px;color:var(--color-danger);font-size:var(--font-size-xs);">
+            <i class="fas fa-times-circle"></i> حجم الملف أكبر من 2MB. يرجى رفع ملف أصغر أو استخدام رابط خارجي.
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label for="noteUrl"><i class="fas fa-link"></i> أو رابط خارجي (Google Drive, Dropbox...)</label>
+          <input type="url" id="noteUrl" name="fileUrl" class="form-control" placeholder="https://drive.google.com/..." dir="ltr" style="text-align:left;">
+        </div>
+
+        <div id="currentFileInfo" style="display:none;margin-bottom:var(--space-md);">
+          <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i>
+            <span id="currentFileText">يوجد ملف مرفق حالياً. اترك حقل الملف والرابط فارغين للإبقاء عليه.</span>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary" id="saveBtn">
+            <i class="fas fa-save"></i> حفظ
+          </button>
+          <button type="button" class="btn btn-secondary" onclick="closeModal()">إلغاء</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <script src="../js/config.js"></script>
+  <script src="../js/storage.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/utils.js"></script>
+  <script src="../js/seed.js"></script>
+  <script>
+    if (!Auth.requireAdmin('index.html')) throw new Error('redirect');
+
+    // Render sidebar
+    document.getElementById('sidebar').innerHTML = Utils.renderAdminSidebar('notes');
+
+    // State
+    let selectedGrade = 'all';
+    let currentFileDataUrl = null;
+
+    // Build grade filter tabs
+    (function buildGradeTabs() {
+      const tabsContainer = document.getElementById('gradeTabs');
+      APP_CONFIG.GRADES.forEach(g => {
+        const btn = document.createElement('button');
+        btn.className = 'tab';
+        btn.dataset.grade = g.value;
+        btn.textContent = g.label;
+        btn.onclick = () => filterByGrade(g.value);
+        tabsContainer.appendChild(btn);
+      });
+    })();
+
+    // Populate grade dropdown in modal
+    (function populateGradeSelect() {
+      const select = document.getElementById('noteGrade');
+      APP_CONFIG.GRADES.forEach(g => {
+        const opt = document.createElement('option');
+        opt.value = g.value;
+        opt.textContent = g.label;
+        select.appendChild(opt);
+      });
+    })();
+
+    // Filter by grade
+    function filterByGrade(grade) {
+      selectedGrade = grade;
+      // Update active tab
+      document.querySelectorAll('#gradeTabs .tab').forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.grade === grade);
+      });
+      loadNotes();
+    }
+
+    // Load and render notes
+    function loadNotes() {
+      const allNotes = Storage.getAll('notes');
+      const filtered = selectedGrade === 'all'
+        ? allNotes
+        : allNotes.filter(n => n.grade === selectedGrade);
+
+      // Sort by date descending
+      filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+      const tbody = document.getElementById('notesTableBody');
+      const emptyState = document.getElementById('emptyState');
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '';
+        emptyState.style.display = 'block';
+        return;
+      }
+
+      emptyState.style.display = 'none';
+
+      tbody.innerHTML = filtered.map(note => {
+        const typeBadge = note.type === 'exam'
+          ? '<span class="badge badge-warning"><i class="fas fa-file-alt"></i> امتحان</span>'
+          : '<span class="badge badge-info"><i class="fas fa-file-pdf"></i> ملزمة</span>';
+
+        const gradeLabel = Utils.getGradeLabel(note.grade);
+        const gradeBadge = `<span class="badge badge-primary">${gradeLabel}</span>`;
+
+        const hasFile = note.fileDataUrl || note.fileUrl;
+        const viewBtn = hasFile
+          ? `<a href="${note.fileDataUrl || note.fileUrl}" target="_blank" class="btn btn-sm btn-outline" title="عرض الملف"><i class="fas fa-eye"></i></a>`
+          : '';
+
+        return `
+          <tr>
+            <td>${note.title}</td>
+            <td>${typeBadge}</td>
+            <td>${gradeBadge}</td>
+            <td>${Utils.formatDate(note.createdAt)}</td>
+            <td>
+              <div class="table-actions">
+                ${viewBtn}
+                <button class="btn btn-sm btn-primary" onclick="openEditModal('${note.id}')" title="تعديل">
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn btn-sm btn-danger" onclick="deleteNote('${note.id}')" title="حذف">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // Open add modal
+    function openAddModal() {
+      document.getElementById('modalTitle').textContent = 'إضافة ملزمة / امتحان';
+      document.getElementById('noteForm').reset();
+      document.getElementById('noteId').value = '';
+      document.getElementById('noteFile').value = '';
+      document.getElementById('fileInfo').textContent = '';
+      document.getElementById('fileWarning').style.display = 'none';
+      document.getElementById('fileError').style.display = 'none';
+      document.getElementById('currentFileInfo').style.display = 'none';
+      currentFileDataUrl = null;
+      Utils.showModal('noteModal');
+    }
+
+    // Open edit modal
+    function openEditModal(noteId) {
+      const note = Storage.getById('notes', noteId);
+      if (!note) {
+        Utils.showToast('لم يتم العثور على الملزمة', 'error');
+        return;
+      }
+
+      document.getElementById('modalTitle').textContent = 'تعديل الملزمة / الامتحان';
+      document.getElementById('noteId').value = note.id;
+      document.getElementById('noteTitle').value = note.title;
+      document.getElementById('noteGrade').value = note.grade;
+      document.getElementById('noteUrl').value = note.fileUrl || '';
+
+      // Set radio type
+      const typeRadios = document.querySelectorAll('input[name="type"]');
+      typeRadios.forEach(r => {
+        r.checked = r.value === note.type;
+      });
+
+      // Reset file input
+      document.getElementById('noteFile').value = '';
+      document.getElementById('fileInfo').textContent = '';
+      document.getElementById('fileWarning').style.display = 'none';
+      document.getElementById('fileError').style.display = 'none';
+
+      // Store current dataUrl
+      currentFileDataUrl = note.fileDataUrl || null;
+
+      // Show current file info if exists
+      if (note.fileDataUrl || note.fileUrl) {
+        document.getElementById('currentFileInfo').style.display = 'block';
+        const fileSource = note.fileDataUrl ? 'ملف مرفوع' : 'رابط خارجي';
+        document.getElementById('currentFileText').textContent =
+          `يوجد ${fileSource} حالياً. اترك حقل الملف والرابط فارغين للإبقاء عليه.`;
+      } else {
+        document.getElementById('currentFileInfo').style.display = 'none';
+      }
+
+      Utils.showModal('noteModal');
+    }
+
+    // Close modal
+    function closeModal() {
+      Utils.hideModal('noteModal');
+      currentFileDataUrl = null;
+    }
+
+    // Close modal on overlay click
+    document.getElementById('noteModal').addEventListener('click', function(e) {
+      if (e.target === this) closeModal();
+    });
+
+    // Handle file selection
+    function handleFileSelect(input) {
+      const file = input.files[0];
+      const fileInfo = document.getElementById('fileInfo');
+      const fileWarning = document.getElementById('fileWarning');
+      const fileError = document.getElementById('fileError');
+
+      fileInfo.textContent = '';
+      fileWarning.style.display = 'none';
+      fileError.style.display = 'none';
+
+      if (!file) return;
+
+      const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+      const sizeKB = (file.size / 1024).toFixed(1);
+      fileInfo.textContent = `${file.name} (${sizeKB} KB)`;
+
+      if (file.size > 2 * 1024 * 1024) {
+        fileError.style.display = 'block';
+        input.value = '';
+        fileInfo.textContent = '';
+        return;
+      }
+
+      if (file.size > 500 * 1024) {
+        fileWarning.style.display = 'block';
+      }
+    }
+
+    // Save note (create or update)
+    async function saveNote(e) {
+      e.preventDefault();
+
+      const noteId = document.getElementById('noteId').value;
+      const title = document.getElementById('noteTitle').value.trim();
+      const type = document.querySelector('input[name="type"]:checked').value;
+      const grade = document.getElementById('noteGrade').value;
+      const fileUrl = document.getElementById('noteUrl').value.trim();
+      const fileInput = document.getElementById('noteFile');
+      const file = fileInput.files[0];
+
+      // Validation
+      if (!title) {
+        Utils.showToast('يرجى إدخال العنوان', 'error');
+        return;
+      }
+
+      if (!grade) {
+        Utils.showToast('يرجى اختيار الصف الدراسي', 'error');
+        return;
+      }
+
+      // Block files > 2MB
+      if (file && file.size > 2 * 1024 * 1024) {
+        Utils.showToast('حجم الملف أكبر من 2MB. يرجى رفع ملف أصغر.', 'error');
+        return;
+      }
+
+      // Determine file data
+      let fileDataUrl = null;
+      let finalFileUrl = fileUrl || '';
+
+      if (file) {
+        try {
+          fileDataUrl = await Utils.fileToDataUrl(file);
+          finalFileUrl = ''; // file upload takes priority over URL
+        } catch (err) {
+          Utils.showToast('حدث خطأ أثناء قراءة الملف', 'error');
+          return;
+        }
+      } else if (!fileUrl && noteId) {
+        // Editing: keep existing file if no new file or URL
+        const existing = Storage.getById('notes', noteId);
+        if (existing) {
+          fileDataUrl = existing.fileDataUrl || null;
+          finalFileUrl = existing.fileUrl || '';
+        }
+      }
+
+      if (noteId) {
+        // Update existing note
+        Storage.update('notes', noteId, {
+          title: title,
+          type: type,
+          grade: grade,
+          fileUrl: finalFileUrl,
+          fileDataUrl: fileDataUrl
+        });
+        Utils.showToast('تم تحديث الملزمة بنجاح', 'success');
+      } else {
+        // Create new note
+        if (!file && !fileUrl) {
+          Utils.showToast('يرجى رفع ملف أو إدخال رابط خارجي', 'error');
+          return;
+        }
+
+        Storage.add('notes', {
+          title: title,
+          type: type,
+          grade: grade,
+          fileUrl: finalFileUrl,
+          fileDataUrl: fileDataUrl
+        });
+        Utils.showToast('تم إضافة الملزمة بنجاح', 'success');
+      }
+
+      closeModal();
+      loadNotes();
+    }
+
+    // Delete note
+    function deleteNote(id) {
+      const note = Storage.getById('notes', id);
+      if (!note) return;
+
+      if (!Utils.confirm(`هل أنت متأكد من حذف "${note.title}"؟`)) return;
+
+      Storage.remove('notes', id);
+      Utils.showToast('تم حذف الملزمة بنجاح', 'success');
+      loadNotes();
+    }
+
+    // Initial load
+    loadNotes();
+
+    // Close sidebar on mobile when clicking a link
+    document.querySelectorAll('.sidebar-link').forEach(link => {
+      link.addEventListener('click', () => {
+        document.querySelector('.sidebar').classList.remove('open');
+      });
+    });
+  </script>
+</body>
+</html>

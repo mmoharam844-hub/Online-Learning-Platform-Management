@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>نظام الدفع والاشتراكات - منصة أ/ أمين خليل</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/pages/admin.css">
+</head>
+<body data-page="admin-payments">
+
+  <div class="admin-layout">
+    <button class="sidebar-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">
+      <i class="fas fa-bars"></i>
+    </button>
+
+    <aside class="sidebar" id="sidebar"></aside>
+
+    <main class="admin-main">
+      <div class="admin-header">
+        <h1><i class="fas fa-credit-card"></i> نظام الدفع والاشتراكات</h1>
+        <p style="color: var(--text-muted);">مراجعة وإدارة طلبات الاشتراك والمدفوعات</p>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-grid" id="statsGrid"></div>
+
+      <!-- Status Filter Tabs -->
+      <div class="tabs" id="statusTabs">
+        <button class="tab active" data-status="all" onclick="filterByStatus('all')">
+          <i class="fas fa-list"></i> الكل
+        </button>
+        <button class="tab" data-status="pending" onclick="filterByStatus('pending')">
+          <i class="fas fa-clock"></i> معلقة <span class="badge badge-warning" id="pendingCount" style="margin-right: 6px;">0</span>
+        </button>
+        <button class="tab" data-status="approved" onclick="filterByStatus('approved')">
+          <i class="fas fa-check-circle"></i> مقبولة
+        </button>
+        <button class="tab" data-status="rejected" onclick="filterByStatus('rejected')">
+          <i class="fas fa-times-circle"></i> مرفوضة
+        </button>
+      </div>
+
+      <!-- Subscriptions Table -->
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <h2><i class="fas fa-file-invoice-dollar"></i> طلبات الاشتراك</h2>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>اسم الطالب</th>
+                <th>الكورس</th>
+                <th>المبلغ</th>
+                <th>طريقة الدفع</th>
+                <th>رقم المعاملة</th>
+                <th>التاريخ</th>
+                <th>الحالة</th>
+                <th>إجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="subscriptionsTableBody"></tbody>
+          </table>
+        </div>
+        <div id="emptyState" style="display: none;">
+          <div class="empty-state">
+            <i class="fas fa-file-invoice"></i>
+            <h3>لا توجد طلبات اشتراك</h3>
+            <p>لم يتم العثور على أي طلبات اشتراك تطابق الفلتر المحدد</p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <script src="../js/config.js"></script>
+  <script src="../js/storage.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/utils.js"></script>
+  <script src="../js/seed.js"></script>
+  <script>
+    if (!Auth.requireAdmin('index.html')) throw new Error('redirect');
+
+    document.getElementById('sidebar').innerHTML = Utils.renderAdminSidebar('payments');
+
+    let currentFilter = 'all';
+
+    // Render stats cards
+    function renderStats() {
+      const subs = Storage.getAll('subscriptions');
+      const totalCount = subs.length;
+      const pendingCount = subs.filter(s => s.status === 'pending').length;
+      const approvedCount = subs.filter(s => s.status === 'approved').length;
+      const rejectedCount = subs.filter(s => s.status === 'rejected').length;
+      const totalRevenue = subs.filter(s => s.status === 'approved').reduce((sum, s) => sum + (s.amount || 0), 0);
+
+      document.getElementById('statsGrid').innerHTML = `
+        <div class="stat-card">
+          <div class="stat-icon blue"><i class="fas fa-file-invoice-dollar"></i></div>
+          <div class="stat-info"><h3>${totalCount}</h3><p>إجمالي الطلبات</p></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon yellow"><i class="fas fa-clock"></i></div>
+          <div class="stat-info"><h3>${pendingCount}</h3><p>طلبات معلقة</p></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
+          <div class="stat-info"><h3>${approvedCount}</h3><p>طلبات مقبولة</p></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon red"><i class="fas fa-money-bill-wave"></i></div>
+          <div class="stat-info"><h3>${totalRevenue} ج.م</h3><p>إجمالي الإيرادات</p></div>
+        </div>
+      `;
+
+      // Update pending count badge in tabs
+      document.getElementById('pendingCount').textContent = pendingCount;
+    }
+
+    // Load and render subscriptions
+    function loadPayments() {
+      const subs = Storage.getAll('subscriptions');
+      const tbody = document.getElementById('subscriptionsTableBody');
+      const emptyState = document.getElementById('emptyState');
+
+      // Filter by status
+      let filtered = subs;
+      if (currentFilter !== 'all') {
+        filtered = subs.filter(s => s.status === currentFilter);
+      }
+
+      // Sort by requestedAt descending (newest first)
+      filtered.sort((a, b) => new Date(b.requestedAt) - new Date(a.requestedAt));
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '';
+        emptyState.style.display = 'block';
+        return;
+      }
+
+      emptyState.style.display = 'none';
+
+      tbody.innerHTML = filtered.map(sub => {
+        const student = Storage.getById('students', sub.studentId);
+        const course = Storage.getById('courses', sub.courseId);
+
+        const studentName = student ? student.fullName : 'طالب محذوف';
+        const courseName = course ? course.name : 'كورس محذوف';
+        const paymentLabel = Utils.getPaymentLabel(sub.paymentMethod);
+        const dateStr = Utils.formatDate(sub.requestedAt);
+
+        // Status badge
+        let statusBadge = '';
+        if (sub.status === 'pending') {
+          statusBadge = '<span class="badge badge-warning">معلقة</span>';
+        } else if (sub.status === 'approved') {
+          statusBadge = '<span class="badge badge-success">مقبولة</span>';
+        } else if (sub.status === 'rejected') {
+          statusBadge = '<span class="badge badge-danger">مرفوضة</span>';
+        }
+
+        // Action buttons
+        let actionsHtml = '';
+        if (sub.status === 'pending') {
+          actionsHtml = `
+            <div class="table-actions">
+              <button class="btn btn-sm btn-success" onclick="approveSubscription('${sub.id}')" title="قبول">
+                <i class="fas fa-check"></i>
+              </button>
+              <button class="btn btn-sm btn-danger" onclick="rejectSubscription('${sub.id}')" title="رفض">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          `;
+        } else if (sub.status === 'approved') {
+          actionsHtml = `
+            <div class="table-actions">
+              <button class="btn btn-sm btn-outline" onclick="generateInvoice('${sub.id}')" title="فاتورة">
+                <i class="fas fa-file-invoice"></i>
+              </button>
+            </div>
+          `;
+        } else {
+          actionsHtml = '<span style="color: var(--text-muted); font-size: var(--font-size-xs);">—</span>';
+        }
+
+        return `
+          <tr>
+            <td>${studentName}</td>
+            <td>${courseName}</td>
+            <td>${sub.amount} ج.م</td>
+            <td>${paymentLabel}</td>
+            <td><code style="font-size: var(--font-size-xs);">${sub.paymentReference || '—'}</code></td>
+            <td>${dateStr}</td>
+            <td>${statusBadge}</td>
+            <td>${actionsHtml}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // Filter by status tab
+    function filterByStatus(status) {
+      currentFilter = status;
+
+      // Update active tab
+      document.querySelectorAll('#statusTabs .tab').forEach(tab => {
+        tab.classList.remove('active');
+        if (tab.dataset.status === status) {
+          tab.classList.add('active');
+        }
+      });
+
+      loadPayments();
+    }
+
+    // Approve subscription
+    function approveSubscription(id) {
+      const sub = Storage.getById('subscriptions', id);
+      if (!sub) {
+        Utils.showToast('الاشتراك غير موجود', 'error');
+        return;
+      }
+
+      const student = Storage.getById('students', sub.studentId);
+      const studentName = student ? student.fullName : 'غير معروف';
+
+      if (!Utils.confirm(`هل تريد قبول طلب اشتراك "${studentName}"؟`)) return;
+
+      Storage.update('subscriptions', id, {
+        status: 'approved',
+        approvedAt: new Date().toISOString()
+      });
+
+      Utils.showToast('تم قبول الاشتراك بنجاح', 'success');
+      renderStats();
+      loadPayments();
+    }
+
+    // Reject subscription
+    function rejectSubscription(id) {
+      const sub = Storage.getById('subscriptions', id);
+      if (!sub) {
+        Utils.showToast('الاشتراك غير موجود', 'error');
+        return;
+      }
+
+      const student = Storage.getById('students', sub.studentId);
+      const studentName = student ? student.fullName : 'غير معروف';
+
+      if (!Utils.confirm(`هل تريد رفض طلب اشتراك "${studentName}"؟`)) return;
+
+      Storage.update('subscriptions', id, {
+        status: 'rejected'
+      });
+
+      Utils.showToast('تم رفض الاشتراك', 'warning');
+      renderStats();
+      loadPayments();
+    }
+
+    // Generate printable invoice
+    function generateInvoice(subId) {
+      const sub = Storage.getById('subscriptions', subId);
+      if (!sub) {
+        Utils.showToast('الاشتراك غير موجود', 'error');
+        return;
+      }
+
+      const student = Storage.getById('students', sub.studentId);
+      const course = Storage.getById('courses', sub.courseId);
+
+      const studentName = student ? student.fullName : 'غير معروف';
+      const studentPhone = student ? student.phone : '—';
+      const courseName = course ? course.name : 'غير معروف';
+      const paymentLabel = Utils.getPaymentLabel(sub.paymentMethod);
+      const dateStr = Utils.formatDate(sub.approvedAt || sub.requestedAt);
+
+      const invoiceHtml = `
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>فاتورة اشتراك - ${studentName}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Cairo', sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+      direction: rtl;
+    }
+    .invoice-print {
+      background: #fff;
+      color: #1a1a1a;
+      padding: 40px;
+      max-width: 600px;
+      margin: 0 auto;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .invoice-print h1 {
+      color: #1a1a1a;
+      text-align: center;
+      margin-bottom: 8px;
+      font-size: 24px;
+    }
+    .invoice-print .invoice-subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 24px;
+      font-size: 14px;
+    }
+    .invoice-print .invoice-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid #eee;
+    }
+    .invoice-print .invoice-header .platform-name {
+      font-size: 18px;
+      font-weight: 700;
+      color: #3b82f6;
+    }
+    .invoice-print .invoice-header .invoice-number {
+      font-size: 13px;
+      color: #666;
+    }
+    .invoice-print table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    .invoice-print th,
+    .invoice-print td {
+      border: 1px solid #ddd;
+      padding: 12px 14px;
+      text-align: right;
+      color: #1a1a1a;
+      font-size: 14px;
+    }
+    .invoice-print th {
+      background: #f8f9fa;
+      font-weight: 700;
+      width: 35%;
+    }
+    .invoice-print .invoice-footer {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 2px solid #eee;
+      text-align: center;
+      color: #999;
+      font-size: 12px;
+    }
+    .print-btn {
+      display: block;
+      margin: 24px auto 0;
+      padding: 10px 30px;
+      background: #3b82f6;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-family: 'Cairo', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .print-btn:hover {
+      background: #2563eb;
+    }
+    @media print {
+      body { background: #fff; padding: 0; }
+      .invoice-print { box-shadow: none; border-radius: 0; }
+      .no-print { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="invoice-print">
+    <div class="invoice-header">
+      <div class="platform-name">${APP_CONFIG.TEACHER_NAME}</div>
+      <div class="invoice-number">رقم الفاتورة: ${sub.id}</div>
+    </div>
+
+    <h1>فاتورة اشتراك</h1>
+    <p class="invoice-subtitle">${APP_CONFIG.APP_NAME}</p>
+
+    <table>
+      <tr>
+        <th>اسم الطالب</th>
+        <td>${studentName}</td>
+      </tr>
+      <tr>
+        <th>رقم الهاتف</th>
+        <td>${studentPhone}</td>
+      </tr>
+      <tr>
+        <th>الكورس</th>
+        <td>${courseName}</td>
+      </tr>
+      <tr>
+        <th>المبلغ</th>
+        <td>${sub.amount} ج.م</td>
+      </tr>
+      <tr>
+        <th>طريقة الدفع</th>
+        <td>${paymentLabel}</td>
+      </tr>
+      <tr>
+        <th>رقم المعاملة</th>
+        <td>${sub.paymentReference || '—'}</td>
+      </tr>
+      <tr>
+        <th>التاريخ</th>
+        <td>${dateStr}</td>
+      </tr>
+      <tr>
+        <th>رقم الفاتورة</th>
+        <td>${sub.id}</td>
+      </tr>
+    </table>
+
+    <div class="invoice-footer">
+      ${APP_CONFIG.APP_NAME} &mdash; جميع الحقوق محفوظة
+    </div>
+
+    <button class="print-btn no-print" onclick="window.print()">
+      <i class="fas fa-print"></i> طباعة الفاتورة
+    </button>
+  </div>
+</body>
+</html>`;
+
+      const invoiceWindow = window.open('', '_blank');
+      invoiceWindow.document.write(invoiceHtml);
+      invoiceWindow.document.close();
+    }
+
+    // Close sidebar on mobile when clicking a link
+    document.querySelectorAll('.sidebar-link').forEach(link => {
+      link.addEventListener('click', () => {
+        document.querySelector('.sidebar').classList.remove('open');
+      });
+    });
+
+    // Initial load
+    renderStats();
+    loadPayments();
+  </script>
+</body>
+</html>

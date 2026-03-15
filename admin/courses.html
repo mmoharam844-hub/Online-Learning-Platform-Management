@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>إدارة الكورسات - منصة أ/ أمين خليل</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/pages/admin.css">
+</head>
+<body data-page="admin-courses">
+
+  <div class="admin-layout">
+    <button class="sidebar-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">
+      <i class="fas fa-bars"></i>
+    </button>
+
+    <aside class="sidebar" id="sidebar"></aside>
+
+    <main class="admin-main">
+      <div class="admin-header">
+        <h1><i class="fas fa-book"></i> إدارة الكورسات</h1>
+        <p style="color: var(--text-muted);">إضافة وتعديل وحذف الكورسات</p>
+      </div>
+
+      <!-- Action Row -->
+      <div class="action-row">
+        <button class="btn btn-primary" onclick="openAddModal()">
+          <i class="fas fa-plus"></i> إضافة كورس
+        </button>
+      </div>
+
+      <!-- Courses Table -->
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <h2><i class="fas fa-list"></i> قائمة الكورسات</h2>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>الاسم</th>
+                <th>الوصف</th>
+                <th>الصف</th>
+                <th>السعر</th>
+                <th>عدد الدروس</th>
+                <th>الحالة</th>
+                <th>إجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="coursesTableBody"></tbody>
+          </table>
+        </div>
+        <div id="emptyState" style="display:none;">
+          <div class="empty-state">
+            <i class="fas fa-book-open"></i>
+            <h3>لا توجد كورسات بعد</h3>
+            <p>ابدأ بإضافة كورس جديد</p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Course Modal -->
+  <div class="modal-overlay" id="courseModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modalTitle">إضافة كورس جديد</h3>
+        <button class="modal-close" onclick="Utils.hideModal('courseModal')">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <form id="courseForm" onsubmit="saveCourse(event)">
+        <input type="hidden" id="courseId" value="">
+
+        <div class="form-group">
+          <label for="courseName"><i class="fas fa-heading"></i> اسم الكورس</label>
+          <input type="text" id="courseName" name="name" class="form-control" placeholder="أدخل اسم الكورس" required>
+        </div>
+
+        <div class="form-group">
+          <label for="courseDescription"><i class="fas fa-align-right"></i> الوصف</label>
+          <textarea id="courseDescription" name="description" class="form-control" rows="3" placeholder="أدخل وصف الكورس"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="courseGrade"><i class="fas fa-graduation-cap"></i> الصف</label>
+          <select id="courseGrade" name="grade" class="form-control" required>
+            <option value="">اختر الصف...</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="coursePrice"><i class="fas fa-money-bill-wave"></i> السعر (ج.م)</label>
+          <input type="number" id="coursePrice" name="price" class="form-control" placeholder="أدخل السعر" min="0" step="1" required>
+        </div>
+
+        <div class="form-group" style="display: flex; align-items: center; gap: var(--space-sm);">
+          <input type="checkbox" id="coursePublished" name="isPublished" style="width: auto;">
+          <label for="coursePublished" style="margin: 0; cursor: pointer;">منشور (ظاهر للطلاب)</label>
+        </div>
+
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save"></i> حفظ
+          </button>
+          <button type="button" class="btn btn-outline" onclick="Utils.hideModal('courseModal')">
+            إلغاء
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <script src="../js/config.js"></script>
+  <script src="../js/storage.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/utils.js"></script>
+  <script src="../js/seed.js"></script>
+  <script>
+    if (!Auth.requireAdmin('index.html')) throw new Error('redirect');
+
+    document.getElementById('sidebar').innerHTML = Utils.renderAdminSidebar('courses');
+
+    // Populate grade dropdown
+    const gradeSelect = document.getElementById('courseGrade');
+    APP_CONFIG.GRADES.forEach(g => {
+      const option = document.createElement('option');
+      option.value = g.value;
+      option.textContent = g.label;
+      gradeSelect.appendChild(option);
+    });
+
+    // Load and render courses
+    function loadCourses() {
+      const courses = Storage.getAll('courses');
+      const tbody = document.getElementById('coursesTableBody');
+      const emptyState = document.getElementById('emptyState');
+
+      if (courses.length === 0) {
+        tbody.innerHTML = '';
+        emptyState.style.display = 'block';
+        return;
+      }
+
+      emptyState.style.display = 'none';
+
+      tbody.innerHTML = courses.map(course => {
+        const lessons = Storage.getAll('lessons').filter(l => l.courseId === course.id);
+        const gradeLabel = Utils.getGradeLabel(course.grade);
+        const publishedBadge = course.isPublished
+          ? '<span class="badge badge-success">منشور</span>'
+          : '<span class="badge badge-warning">مسودة</span>';
+
+        return `
+          <tr>
+            <td>${course.name}</td>
+            <td>${course.description || '—'}</td>
+            <td><span class="badge badge-info">${gradeLabel}</span></td>
+            <td>${course.price} ج.م</td>
+            <td>${lessons.length}</td>
+            <td>${publishedBadge}</td>
+            <td>
+              <div class="table-actions">
+                <button class="btn btn-sm btn-outline" onclick="openEditModal('${course.id}')" title="تعديل">
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn btn-sm btn-danger" onclick="deleteCourse('${course.id}')" title="حذف">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // Open modal for adding a new course
+    function openAddModal() {
+      document.getElementById('modalTitle').textContent = 'إضافة كورس جديد';
+      document.getElementById('courseId').value = '';
+      document.getElementById('courseForm').reset();
+      Utils.showModal('courseModal');
+    }
+
+    // Open modal for editing an existing course
+    function openEditModal(courseId) {
+      const course = Storage.getById('courses', courseId);
+      if (!course) {
+        Utils.showToast('الكورس غير موجود', 'error');
+        return;
+      }
+
+      document.getElementById('modalTitle').textContent = 'تعديل الكورس';
+      document.getElementById('courseId').value = course.id;
+      document.getElementById('courseName').value = course.name;
+      document.getElementById('courseDescription').value = course.description || '';
+      document.getElementById('courseGrade').value = course.grade;
+      document.getElementById('coursePrice').value = course.price;
+      document.getElementById('coursePublished').checked = !!course.isPublished;
+
+      Utils.showModal('courseModal');
+    }
+
+    // Save course (add or update)
+    function saveCourse(e) {
+      e.preventDefault();
+
+      const id = document.getElementById('courseId').value;
+      const name = document.getElementById('courseName').value.trim();
+      const description = document.getElementById('courseDescription').value.trim();
+      const grade = document.getElementById('courseGrade').value;
+      const price = parseFloat(document.getElementById('coursePrice').value);
+      const isPublished = document.getElementById('coursePublished').checked;
+
+      if (!name) {
+        Utils.showToast('اسم الكورس مطلوب', 'error');
+        return;
+      }
+
+      if (!grade) {
+        Utils.showToast('يرجى اختيار الصف', 'error');
+        return;
+      }
+
+      if (isNaN(price) || price < 0) {
+        Utils.showToast('يرجى إدخال سعر صحيح', 'error');
+        return;
+      }
+
+      const courseData = {
+        name,
+        description,
+        grade,
+        price,
+        isPublished
+      };
+
+      if (id) {
+        // Update existing course
+        Storage.update('courses', id, courseData);
+        Utils.showToast('تم تحديث الكورس بنجاح', 'success');
+      } else {
+        // Add new course
+        Storage.add('courses', courseData);
+        Utils.showToast('تم إضافة الكورس بنجاح', 'success');
+      }
+
+      Utils.hideModal('courseModal');
+      loadCourses();
+    }
+
+    // Delete course
+    function deleteCourse(id) {
+      const course = Storage.getById('courses', id);
+      if (!course) return;
+
+      if (!Utils.confirm(`هل أنت متأكد من حذف الكورس "${course.name}"؟`)) return;
+
+      Storage.remove('courses', id);
+      Utils.showToast('تم حذف الكورس بنجاح', 'success');
+      loadCourses();
+    }
+
+    // Close modal when clicking on overlay
+    document.getElementById('courseModal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        Utils.hideModal('courseModal');
+      }
+    });
+
+    // Close sidebar on mobile when clicking a link
+    document.querySelectorAll('.sidebar-link').forEach(link => {
+      link.addEventListener('click', () => {
+        document.querySelector('.sidebar').classList.remove('open');
+      });
+    });
+
+    // Initial load
+    loadCourses();
+  </script>
+</body>
+</html>

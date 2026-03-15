@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>مشاهدة الكورس - منصة أ/ أمين خليل</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/pages/course-viewer.css">
+</head>
+<body data-page="course-viewer">
+
+  <header class="header" id="header"></header>
+
+  <main class="container">
+    <div class="viewer-layout">
+      <!-- Main Content -->
+      <div class="viewer-main">
+        <div class="video-player" id="videoPlayer">
+          <iframe id="videoFrame" src="" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+        </div>
+
+        <div class="lesson-info" id="lessonInfo">
+          <h1 id="lessonTitle">جاري التحميل...</h1>
+          <div class="lesson-meta">
+            <span><i class="fas fa-clock"></i> <span id="lessonDuration"></span></span>
+            <span><i class="fas fa-book"></i> <span id="courseName"></span></span>
+          </div>
+          <div class="lesson-description" id="lessonDesc"></div>
+
+          <div class="homework-box" id="homeworkBox" style="display: none;">
+            <h4><i class="fas fa-tasks"></i> الواجب</h4>
+            <p id="homeworkText"></p>
+          </div>
+
+          <div class="lesson-actions">
+            <button id="completeBtn" class="btn btn-accent" onclick="toggleComplete()">
+              <i class="fas fa-check-circle"></i> تم الانتهاء من الدرس
+            </button>
+          </div>
+
+          <div class="lesson-nav">
+            <button id="prevBtn" class="btn btn-secondary" onclick="navigateLesson('prev')">
+              <i class="fas fa-arrow-right"></i> الدرس السابق
+            </button>
+            <button id="nextBtn" class="btn btn-primary" onclick="navigateLesson('next')">
+              الدرس التالي <i class="fas fa-arrow-left"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="viewer-sidebar">
+        <div class="lessons-list-card">
+          <div class="lessons-list-header">
+            <i class="fas fa-list"></i> قائمة الدروس
+          </div>
+          <div class="lessons-list" id="lessonsList"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>جميع الحقوق محفوظة &copy; Mr.Amin 2026</p>
+    </div>
+  </footer>
+
+  <div id="toast-container"></div>
+
+  <script src="js/config.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/seed.js"></script>
+  <script>
+    if (!Auth.requireAuth()) throw new Error('redirect');
+
+    const user = Auth.getCurrentUser();
+    const courseId = Utils.getParam('courseId');
+    let currentLessonId = Utils.getParam('lessonId');
+    let lessons = [];
+
+    document.getElementById('header').innerHTML = Utils.renderHeader('course-viewer');
+
+    function init() {
+      const course = Storage.getById('courses', courseId);
+      if (!course) {
+        Utils.showToast('الكورس غير موجود', 'error');
+        setTimeout(() => window.location.href = 'dashboard.html', 1000);
+        return;
+      }
+
+      // Check subscription
+      const sub = Storage.query('subscriptions', s => s.studentId === user.id && s.courseId === courseId && s.status === 'approved');
+      if (sub.length === 0) {
+        Utils.showToast('يجب الاشتراك في الكورس أولاً', 'error');
+        setTimeout(() => window.location.href = 'subscription.html?courseId=' + courseId, 1000);
+        return;
+      }
+
+      document.getElementById('courseName').textContent = course.name;
+      lessons = Storage.query('lessons', l => l.courseId === courseId).sort((a, b) => a.order - b.order);
+
+      if (lessons.length === 0) {
+        document.getElementById('lessonInfo').innerHTML = `
+          <div class="empty-state">
+            <i class="fas fa-video"></i>
+            <h3>لا توجد دروس حالياً</h3>
+            <p>سيتم إضافة الدروس قريباً</p>
+          </div>
+        `;
+        return;
+      }
+
+      if (!currentLessonId) currentLessonId = lessons[0].id;
+      renderLessonsList();
+      loadLesson(currentLessonId);
+    }
+
+    function renderLessonsList() {
+      const progress = Storage.query('progress', p => p.studentId === user.id && p.courseId === courseId);
+      const list = document.getElementById('lessonsList');
+
+      list.innerHTML = lessons.map(lesson => {
+        const isCompleted = progress.some(p => p.lessonId === lesson.id && p.completed);
+        const isActive = lesson.id === currentLessonId;
+
+        return `
+          <div class="lesson-item ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''}" onclick="loadLesson('${lesson.id}')">
+            <span class="lesson-check">
+              <i class="fas ${isCompleted ? 'fa-check-circle' : 'fa-circle'}"></i>
+            </span>
+            <div class="lesson-item-info">
+              <div class="title">${lesson.order}. ${lesson.title}</div>
+              <div class="duration"><i class="fas fa-clock"></i> ${lesson.duration}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function loadLesson(lessonId) {
+      currentLessonId = lessonId;
+      const lesson = lessons.find(l => l.id === lessonId);
+      if (!lesson) return;
+
+      document.getElementById('videoFrame').src = lesson.videoUrl;
+      document.getElementById('lessonTitle').textContent = lesson.title;
+      document.getElementById('lessonDuration').textContent = lesson.duration;
+      document.getElementById('lessonDesc').textContent = lesson.description;
+
+      if (lesson.homework) {
+        document.getElementById('homeworkBox').style.display = 'block';
+        document.getElementById('homeworkText').textContent = lesson.homework;
+      } else {
+        document.getElementById('homeworkBox').style.display = 'none';
+      }
+
+      // Update complete button
+      const isCompleted = Storage.query('progress', p => p.studentId === user.id && p.lessonId === lessonId && p.completed).length > 0;
+      const btn = document.getElementById('completeBtn');
+      if (isCompleted) {
+        btn.className = 'btn btn-secondary';
+        btn.innerHTML = '<i class="fas fa-check-circle"></i> تم الانتهاء ✓';
+      } else {
+        btn.className = 'btn btn-accent';
+        btn.innerHTML = '<i class="fas fa-check-circle"></i> تم الانتهاء من الدرس';
+      }
+
+      // Navigation buttons
+      const currentIdx = lessons.findIndex(l => l.id === lessonId);
+      document.getElementById('prevBtn').style.display = currentIdx > 0 ? '' : 'none';
+      document.getElementById('nextBtn').style.display = currentIdx < lessons.length - 1 ? '' : 'none';
+
+      renderLessonsList();
+
+      // Update URL
+      const url = new URL(window.location);
+      url.searchParams.set('lessonId', lessonId);
+      history.replaceState(null, '', url);
+    }
+
+    function toggleComplete() {
+      const existing = Storage.query('progress', p => p.studentId === user.id && p.lessonId === currentLessonId);
+      if (existing.length > 0) {
+        Storage.remove('progress', existing[0].id);
+        Utils.showToast('تم إلغاء إتمام الدرس', 'info');
+      } else {
+        Storage.add('progress', {
+          studentId: user.id,
+          courseId: courseId,
+          lessonId: currentLessonId,
+          completed: true,
+          completedAt: new Date().toISOString()
+        });
+        Utils.showToast('أحسنت! تم تسجيل إتمام الدرس', 'success');
+      }
+      loadLesson(currentLessonId);
+    }
+
+    function navigateLesson(direction) {
+      const currentIdx = lessons.findIndex(l => l.id === currentLessonId);
+      if (direction === 'next' && currentIdx < lessons.length - 1) {
+        loadLesson(lessons[currentIdx + 1].id);
+      } else if (direction === 'prev' && currentIdx > 0) {
+        loadLesson(lessons[currentIdx - 1].id);
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>

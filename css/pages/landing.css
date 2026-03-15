@@ -1,0 +1,272 @@
+/* ========== HERO SECTION ========== */
+.hero {
+  min-height: 90vh;
+  display: flex;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  padding: var(--space-2xl) 0;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 30% 50%, rgba(59, 130, 246, 0.1) 0%, transparent 60%),
+              radial-gradient(ellipse at 70% 50%, rgba(34, 197, 94, 0.05) 0%, transparent 60%);
+  z-index: 0;
+}
+
+.hero .container {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3xl);
+}
+
+.hero-content {
+  flex: 1;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  padding: 8px 20px;
+  border-radius: 30px;
+  margin-bottom: var(--space-lg);
+  font-size: var(--font-size-sm);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.hero-title {
+  font-size: 3rem;
+  font-weight: 800;
+  margin-bottom: var(--space-md);
+  line-height: 1.2;
+}
+
+.hero-title span {
+  color: var(--color-primary);
+}
+
+.hero-slogan {
+  font-size: var(--font-size-xl);
+  color: var(--color-accent);
+  font-weight: 600;
+  margin-bottom: var(--space-lg);
+}
+
+.hero-buttons {
+  display: flex;
+  gap: var(--space-md);
+  margin-top: var(--space-xl);
+}
+
+.hero-image {
+  flex: 0 0 350px;
+  display: flex;
+  justify-content: center;
+}
+
+.teacher-photo {
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid var(--color-primary);
+  box-shadow: 0 0 40px rgba(59, 130, 246, 0.3), 0 0 80px rgba(59, 130, 246, 0.1);
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
+
+/* ========== POEM SECTION ========== */
+.poem-section {
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.poem-card {
+  max-width: 700px;
+  margin: 0 auto;
+  text-align: center;
+  padding: var(--space-xl);
+  background: rgba(59, 130, 246, 0.05);
+  border: 1px solid rgba(59, 130, 246, 0.15);
+  border-radius: var(--border-radius-lg);
+}
+
+.poem-card p {
+  font-size: var(--font-size-lg);
+  line-height: 2.2;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.poem-card .dua {
+  color: var(--color-accent);
+  font-weight: 700;
+  font-style: normal;
+}
+
+/* ========== VIDEO SECTION ========== */
+.video-section {
+  background: var(--bg-primary);
+}
+
+.video-container {
+  max-width: 800px;
+  margin: 0 auto;
+  position: relative;
+  padding-bottom: 56.25%;
+  height: 0;
+  overflow: hidden;
+  border-radius: var(--border-radius-lg);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-lg);
+}
+
+.video-container iframe {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* ========== FEATURES SECTION ========== */
+.features-section {
+  background: var(--bg-primary);
+}
+
+.feature-card {
+  text-align: center;
+  padding: var(--space-xl);
+}
+
+.feature-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto var(--space-lg);
+  background: rgba(59, 130, 246, 0.1);
+  border-radius: var(--border-radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: var(--color-primary);
+  transition: var(--transition);
+}
+
+.feature-card:hover .feature-icon {
+  background: var(--color-primary);
+  color: #fff;
+  transform: scale(1.1);
+}
+
+.feature-card h3 {
+  margin-bottom: var(--space-sm);
+  font-size: var(--font-size-xl);
+}
+
+.feature-card p {
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+}
+
+/* ========== CTA SECTION ========== */
+.cta-section {
+  background: linear-gradient(135deg, var(--color-primary-dark), var(--bg-secondary));
+  text-align: center;
+}
+
+.cta-section h2 {
+  margin-bottom: var(--space-md);
+}
+
+.cta-section p {
+  font-size: var(--font-size-lg);
+  margin-bottom: var(--space-xl);
+}
+
+.cta-buttons {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-md);
+}
+
+/* ========== CONTACT SECTION ========== */
+.contact-section {
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-color);
+}
+
+.contact-buttons {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-lg);
+  flex-wrap: wrap;
+}
+
+.contact-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 16px 32px;
+  border-radius: var(--border-radius);
+  font-weight: 700;
+  font-size: var(--font-size-lg);
+  transition: var(--transition);
+  text-decoration: none;
+}
+
+.contact-btn.telegram {
+  background: rgba(0, 136, 204, 0.15);
+  color: #0088cc;
+  border: 1px solid rgba(0, 136, 204, 0.3);
+}
+
+.contact-btn.telegram:hover {
+  background: #0088cc;
+  color: #fff;
+}
+
+.contact-btn.whatsapp {
+  background: rgba(37, 211, 102, 0.15);
+  color: #25D366;
+  border: 1px solid rgba(37, 211, 102, 0.3);
+}
+
+.contact-btn.whatsapp:hover {
+  background: #25D366;
+  color: #fff;
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 1024px) {
+  .hero .container { flex-direction: column-reverse; text-align: center; }
+  .hero-image { flex: none; }
+  .teacher-photo { width: 250px; height: 250px; }
+  .hero-buttons { justify-content: center; }
+  .hero-title { font-size: 2.2rem; }
+}
+
+@media (max-width: 768px) {
+  .hero { min-height: auto; padding: var(--space-xl) 0; }
+  .teacher-photo { width: 200px; height: 200px; }
+  .hero-title { font-size: 1.8rem; }
+  .hero-buttons { flex-direction: column; }
+  .hero-buttons .btn { width: 100%; }
+  .cta-buttons { flex-direction: column; align-items: center; }
+  .contact-buttons { flex-direction: column; align-items: center; }
+}

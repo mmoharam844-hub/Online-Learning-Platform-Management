@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>إنشاء حساب - منصة أ/ أمين خليل</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/pages/auth.css">
+</head>
+<body data-page="register">
+
+  <div class="auth-page">
+    <div class="auth-card wide">
+      <div class="auth-header">
+        <img src="assets/images/teacher.png" alt="أ/ أمين خليل">
+        <h1>إنشاء حساب جديد</h1>
+        <p>انضم لمنصة أ/ أمين خليل التعليمية</p>
+      </div>
+
+      <form id="registerForm">
+        <div class="form-group">
+          <label for="fullName"><i class="fas fa-user"></i> الاسم الثلاثي</label>
+          <input type="text" id="fullName" name="fullName" class="form-control" placeholder="أدخل الاسم الثلاثي" required>
+        </div>
+
+        <div class="form-group">
+          <label><i class="fas fa-venus-mars"></i> النوع</label>
+          <div class="radio-group">
+            <label class="radio-label">
+              <input type="radio" name="gender" value="male" required> ذكر
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="gender" value="female"> أنثى
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="governorate"><i class="fas fa-map-marker-alt"></i> المحافظة</label>
+          <select id="governorate" name="governorate" class="form-control" required>
+            <option value="">اختر المحافظة</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="grade"><i class="fas fa-graduation-cap"></i> الصف الدراسي</label>
+          <select id="grade" name="grade" class="form-control" required>
+            <option value="">اختر الصف</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="phone"><i class="fas fa-phone"></i> رقم الهاتف</label>
+          <div class="phone-input">
+            <input type="text" class="form-control country-code" value="+20" readonly>
+            <input type="tel" id="phone" name="phone" class="form-control" placeholder="01012345678" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="password"><i class="fas fa-lock"></i> كلمة المرور</label>
+          <div class="password-wrapper">
+            <input type="password" id="password" name="password" class="form-control" placeholder="كلمة المرور (6 أحرف على الأقل)" required minlength="6">
+            <button type="button" class="password-toggle" onclick="togglePassword('password', this)">
+              <i class="fas fa-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="confirmPassword"><i class="fas fa-lock"></i> تأكيد كلمة المرور</label>
+          <div class="password-wrapper">
+            <input type="password" id="confirmPassword" name="confirmPassword" class="form-control" placeholder="أعد كتابة كلمة المرور" required>
+            <button type="button" class="password-toggle" onclick="togglePassword('confirmPassword', this)">
+              <i class="fas fa-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block btn-lg">
+          <i class="fas fa-user-plus"></i> إنشاء الحساب
+        </button>
+      </form>
+
+      <div class="auth-footer">
+        <p>لديك حساب بالفعل؟ <a href="login.html">تسجيل الدخول</a></p>
+        <p style="margin-top: 8px;"><a href="index.html"><i class="fas fa-home"></i> العودة للرئيسية</a></p>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <script src="js/config.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/seed.js"></script>
+  <script>
+    // Populate dropdowns
+    const govSelect = document.getElementById('governorate');
+    APP_CONFIG.GOVERNORATES.forEach(g => {
+      govSelect.innerHTML += `<option value="${g}">${g}</option>`;
+    });
+
+    const gradeSelect = document.getElementById('grade');
+    APP_CONFIG.GRADES.forEach(g => {
+      gradeSelect.innerHTML += `<option value="${g.value}">${g.label}</option>`;
+    });
+
+    function togglePassword(inputId, btn) {
+      const input = document.getElementById(inputId);
+      const icon = btn.querySelector('i');
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.replace('fa-eye', 'fa-eye-slash');
+      } else {
+        input.type = 'password';
+        icon.classList.replace('fa-eye-slash', 'fa-eye');
+      }
+    }
+
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const fullName = document.getElementById('fullName').value.trim();
+      const gender = document.querySelector('input[name="gender"]:checked');
+      const governorate = document.getElementById('governorate').value;
+      const grade = document.getElementById('grade').value;
+      const phone = document.getElementById('phone').value.trim();
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+
+      // Validate
+      if (!fullName || !gender || !governorate || !grade || !phone || !password) {
+        Utils.showToast('يرجى ملء جميع الحقول', 'error');
+        return;
+      }
+
+      if (!Utils.validatePhone(phone)) {
+        Utils.showToast('رقم الهاتف غير صحيح', 'error');
+        return;
+      }
+
+      if (password.length < 6) {
+        Utils.showToast('كلمة المرور يجب أن تكون 6 أحرف على الأقل', 'error');
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        Utils.showToast('كلمة المرور غير متطابقة', 'error');
+        return;
+      }
+
+      const result = await Auth.register({
+        fullName,
+        gender: gender.value,
+        governorate,
+        grade,
+        phone,
+        password
+      });
+
+      if (result.success) {
+        Utils.showToast(result.message, 'success');
+        setTimeout(() => window.location.href = 'login.html', 1000);
+      } else {
+        Utils.showToast(result.message, 'error');
+      }
+    });
+  </script>
+</body>
+</html>

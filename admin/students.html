@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>قاعدة بيانات الطلاب - منصة أ/ أمين خليل</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/pages/admin.css">
+</head>
+<body data-page="admin-students">
+
+  <div class="admin-layout">
+    <button class="sidebar-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">
+      <i class="fas fa-bars"></i>
+    </button>
+
+    <aside class="sidebar" id="sidebar"></aside>
+
+    <main class="admin-main">
+      <div class="admin-header">
+        <h1><i class="fas fa-users"></i> قاعدة بيانات الطلاب</h1>
+        <p style="color: var(--text-muted);">عرض وإدارة جميع الطلاب المسجلين</p>
+      </div>
+
+      <!-- Filter Row -->
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <h2><i class="fas fa-filter"></i> تصفية وبحث</h2>
+          <button class="btn btn-success" onclick="exportExcel()">
+            <i class="fas fa-file-excel"></i> تصدير Excel
+          </button>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: var(--space-md); padding: var(--space-md);">
+          <div style="flex: 1; min-width: 200px;">
+            <input type="text" id="searchInput" class="form-control" placeholder="بحث بالاسم أو رقم الهاتف..." oninput="filterStudents()">
+          </div>
+          <div style="min-width: 180px;">
+            <select id="gradeFilter" class="form-control" onchange="filterStudents()">
+              <option value="">كل الصفوف</option>
+            </select>
+          </div>
+          <div style="min-width: 180px;">
+            <select id="governorateFilter" class="form-control" onchange="filterStudents()">
+              <option value="">كل المحافظات</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Students Table -->
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <h2><i class="fas fa-list"></i> قائمة الطلاب (<span id="totalCount">0</span>)</h2>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>الاسم</th>
+                <th>الهاتف</th>
+                <th>النوع</th>
+                <th>الصف</th>
+                <th>المحافظة</th>
+                <th>تاريخ التسجيل</th>
+                <th>الحالة</th>
+                <th>إجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="studentsTableBody"></tbody>
+          </table>
+        </div>
+        <div id="emptyState" style="display:none;">
+          <div class="empty-state">
+            <i class="fas fa-users-slash"></i>
+            <h3>لا يوجد طلاب مطابقين</h3>
+            <p>حاول تغيير معايير البحث أو التصفية</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <div id="paginationContainer" style="display: flex; justify-content: center; align-items: center; gap: var(--space-sm); padding: var(--space-md) 0; flex-wrap: wrap;"></div>
+    </main>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <script src="../js/config.js"></script>
+  <script src="../js/storage.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/utils.js"></script>
+  <script src="../js/seed.js"></script>
+  <script>
+    if (!Auth.requireAdmin('index.html')) throw new Error('redirect');
+
+    document.getElementById('sidebar').innerHTML = Utils.renderAdminSidebar('students');
+
+    // State
+    let currentPage = 1;
+    const perPage = 20;
+    let searchQuery = '';
+    let gradeFilterValue = '';
+    let governorateFilterValue = '';
+
+    // Populate filter dropdowns
+    const gradeFilter = document.getElementById('gradeFilter');
+    APP_CONFIG.GRADES.forEach(g => {
+      const option = document.createElement('option');
+      option.value = g.value;
+      option.textContent = g.label;
+      gradeFilter.appendChild(option);
+    });
+
+    const governorateFilter = document.getElementById('governorateFilter');
+    APP_CONFIG.GOVERNORATES.forEach(gov => {
+      const option = document.createElement('option');
+      option.value = gov;
+      option.textContent = gov;
+      governorateFilter.appendChild(option);
+    });
+
+    // Get filtered students
+    function getFilteredStudents() {
+      let students = Storage.getAll('students');
+
+      // Apply search filter
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        students = students.filter(s =>
+          (s.fullName && s.fullName.toLowerCase().includes(query)) ||
+          (s.phone && s.phone.includes(query))
+        );
+      }
+
+      // Apply grade filter
+      if (gradeFilterValue) {
+        students = students.filter(s => s.grade === gradeFilterValue);
+      }
+
+      // Apply governorate filter
+      if (governorateFilterValue) {
+        students = students.filter(s => s.governorate === governorateFilterValue);
+      }
+
+      // Sort by creation date descending (newest first)
+      students.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+      return students;
+    }
+
+    // Load and render students
+    function loadStudents() {
+      const allFiltered = getFilteredStudents();
+      const totalCount = allFiltered.length;
+      const totalPages = Math.max(1, Math.ceil(totalCount / perPage));
+
+      // Ensure current page is valid
+      if (currentPage > totalPages) currentPage = totalPages;
+      if (currentPage < 1) currentPage = 1;
+
+      // Paginate
+      const startIndex = (currentPage - 1) * perPage;
+      const pageStudents = allFiltered.slice(startIndex, startIndex + perPage);
+
+      // Update total count display
+      document.getElementById('totalCount').textContent = totalCount;
+
+      const tbody = document.getElementById('studentsTableBody');
+      const emptyState = document.getElementById('emptyState');
+
+      if (totalCount === 0) {
+        tbody.innerHTML = '';
+        emptyState.style.display = 'block';
+        document.getElementById('paginationContainer').innerHTML = '';
+        return;
+      }
+
+      emptyState.style.display = 'none';
+
+      tbody.innerHTML = pageStudents.map(student => {
+        const gradeLabel = Utils.getGradeLabel(student.grade);
+        const genderDisplay = student.gender === 'male' ? 'ذكر' : 'أنثى';
+        const isActive = student.isActive !== false; // default to true if not set
+        const activeBadge = isActive
+          ? '<span class="badge badge-success">نشط</span>'
+          : '<span class="badge badge-danger">معطل</span>';
+        const toggleBtnClass = isActive ? 'btn-warning' : 'btn-success';
+        const toggleBtnText = isActive ? 'تعطيل' : 'تفعيل';
+        const toggleBtnIcon = isActive ? 'fa-ban' : 'fa-check';
+
+        return `
+          <tr>
+            <td>${student.fullName || ''}</td>
+            <td>${student.phone || ''}</td>
+            <td>${genderDisplay}</td>
+            <td><span class="badge badge-info">${gradeLabel}</span></td>
+            <td>${student.governorate || ''}</td>
+            <td>${Utils.formatDate(student.createdAt)}</td>
+            <td>${activeBadge}</td>
+            <td>
+              <div class="table-actions">
+                <button class="btn btn-sm ${toggleBtnClass}" onclick="toggleStudentActive('${student.id}')" title="${toggleBtnText}">
+                  <i class="fas ${toggleBtnIcon}"></i> ${toggleBtnText}
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      renderPagination(totalPages);
+    }
+
+    // Filter students
+    function filterStudents() {
+      searchQuery = document.getElementById('searchInput').value.trim();
+      gradeFilterValue = document.getElementById('gradeFilter').value;
+      governorateFilterValue = document.getElementById('governorateFilter').value;
+      currentPage = 1;
+      loadStudents();
+    }
+
+    // Toggle student active status
+    function toggleStudentActive(id) {
+      const student = Storage.getById('students', id);
+      if (!student) {
+        Utils.showToast('الطالب غير موجود', 'error');
+        return;
+      }
+
+      const isCurrentlyActive = student.isActive !== false;
+      Storage.update('students', id, { isActive: !isCurrentlyActive });
+
+      if (isCurrentlyActive) {
+        Utils.showToast(`تم تعطيل حساب "${student.fullName}"`, 'warning');
+      } else {
+        Utils.showToast(`تم تفعيل حساب "${student.fullName}"`, 'success');
+      }
+
+      loadStudents();
+    }
+
+    // Export to Excel (CSV with UTF-8 BOM)
+    function exportExcel() {
+      const students = getFilteredStudents();
+
+      if (students.length === 0) {
+        Utils.showToast('لا توجد بيانات للتصدير', 'warning');
+        return;
+      }
+
+      const headers = ['الاسم', 'الهاتف', 'النوع', 'الصف', 'المحافظة', 'تاريخ التسجيل', 'الحالة'];
+
+      const rows = students.map(student => {
+        const genderDisplay = student.gender === 'male' ? 'ذكر' : 'أنثى';
+        const gradeLabel = Utils.getGradeLabel(student.grade);
+        const isActive = student.isActive !== false;
+        const statusDisplay = isActive ? 'نشط' : 'معطل';
+
+        return [
+          student.fullName || '',
+          student.phone || '',
+          genderDisplay,
+          gradeLabel,
+          student.governorate || '',
+          Utils.formatDate(student.createdAt),
+          statusDisplay
+        ];
+      });
+
+      Utils.downloadCSV(headers, rows, 'students_export.csv');
+      Utils.showToast('تم تصدير البيانات بنجاح', 'success');
+    }
+
+    // Render pagination controls
+    function renderPagination(totalPages) {
+      const container = document.getElementById('paginationContainer');
+
+      if (totalPages <= 1) {
+        container.innerHTML = '';
+        return;
+      }
+
+      let html = '';
+
+      // Previous button
+      html += `<button class="btn btn-sm btn-outline" onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>
+        <i class="fas fa-chevron-right"></i> السابق
+      </button>`;
+
+      // Page numbers
+      const maxVisible = 5;
+      let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+      let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+
+      // Adjust start if we're near the end
+      if (endPage - startPage + 1 < maxVisible) {
+        startPage = Math.max(1, endPage - maxVisible + 1);
+      }
+
+      if (startPage > 1) {
+        html += `<button class="btn btn-sm btn-outline" onclick="goToPage(1)">1</button>`;
+        if (startPage > 2) {
+          html += `<span style="padding: 0 var(--space-xs); color: var(--text-muted);">...</span>`;
+        }
+      }
+
+      for (let i = startPage; i <= endPage; i++) {
+        if (i === currentPage) {
+          html += `<button class="btn btn-sm btn-primary" disabled>${i}</button>`;
+        } else {
+          html += `<button class="btn btn-sm btn-outline" onclick="goToPage(${i})">${i}</button>`;
+        }
+      }
+
+      if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+          html += `<span style="padding: 0 var(--space-xs); color: var(--text-muted);">...</span>`;
+        }
+        html += `<button class="btn btn-sm btn-outline" onclick="goToPage(${totalPages})">${totalPages}</button>`;
+      }
+
+      // Next button
+      html += `<button class="btn btn-sm btn-outline" onclick="goToPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>
+        التالي <i class="fas fa-chevron-left"></i>
+      </button>`;
+
+      container.innerHTML = html;
+    }
+
+    // Go to specific page
+    function goToPage(page) {
+      currentPage = page;
+      loadStudents();
+      // Scroll to top of table
+      document.querySelector('.table-wrapper').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // Close sidebar on mobile when clicking a link
+    document.querySelectorAll('.sidebar-link').forEach(link => {
+      link.addEventListener('click', () => {
+        document.querySelector('.sidebar').classList.remove('open');
+      });
+    });
+
+    // Initial load
+    loadStudents();
+  </script>
+</body>
+</html>

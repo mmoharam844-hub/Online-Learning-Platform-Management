@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لوحة التحكم - منصة أ/ أمين خليل</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/pages/admin.css">
+</head>
+<body data-page="admin-dashboard">
+
+  <div class="admin-layout">
+    <button class="sidebar-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">
+      <i class="fas fa-bars"></i>
+    </button>
+
+    <aside class="sidebar" id="sidebar"></aside>
+
+    <main class="admin-main">
+      <div class="admin-header">
+        <h1><i class="fas fa-chart-line"></i> لوحة التحليلات</h1>
+        <p style="color: var(--text-muted);">مرحباً بك في لوحة التحكم</p>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-grid" id="statsGrid"></div>
+
+      <!-- Charts & Tables -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-xl);">
+        <!-- Grade Distribution -->
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h2><i class="fas fa-chart-bar"></i> توزيع الطلاب حسب الصف</h2>
+          </div>
+          <div class="chart-bar-container" id="gradeChart"></div>
+        </div>
+
+        <!-- Pending Requests -->
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h2><i class="fas fa-clock"></i> طلبات اشتراك معلقة</h2>
+            <a href="payments.html" class="btn btn-sm btn-outline">عرض الكل</a>
+          </div>
+          <div id="pendingRequests"></div>
+        </div>
+      </div>
+
+      <!-- Recent Students -->
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <h2><i class="fas fa-users"></i> آخر الطلاب المسجلين</h2>
+          <a href="students.html" class="btn btn-sm btn-outline">عرض الكل</a>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>الاسم</th>
+                <th>الهاتف</th>
+                <th>الصف</th>
+                <th>المحافظة</th>
+                <th>تاريخ التسجيل</th>
+              </tr>
+            </thead>
+            <tbody id="recentStudents"></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <script src="../js/config.js"></script>
+  <script src="../js/storage.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/utils.js"></script>
+  <script src="../js/seed.js"></script>
+  <script>
+    if (!Auth.requireAdmin('index.html')) throw new Error('redirect');
+
+    document.getElementById('sidebar').innerHTML = Utils.renderAdminSidebar('dashboard');
+
+    // Stats
+    const students = Storage.getAll('students');
+    const courses = Storage.getAll('courses');
+    const subs = Storage.getAll('subscriptions');
+    const approvedSubs = subs.filter(s => s.status === 'approved');
+    const revenue = approvedSubs.reduce((sum, s) => sum + (s.amount || 0), 0);
+
+    document.getElementById('statsGrid').innerHTML = `
+      <div class="stat-card">
+        <div class="stat-icon blue"><i class="fas fa-users"></i></div>
+        <div class="stat-info"><h3>${students.length}</h3><p>إجمالي الطلاب</p></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green"><i class="fas fa-book"></i></div>
+        <div class="stat-info"><h3>${courses.length}</h3><p>الكورسات</p></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon yellow"><i class="fas fa-check-circle"></i></div>
+        <div class="stat-info"><h3>${approvedSubs.length}</h3><p>اشتراكات فعالة</p></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon red"><i class="fas fa-money-bill-wave"></i></div>
+        <div class="stat-info"><h3>${revenue} ج.م</h3><p>إجمالي الإيرادات</p></div>
+      </div>
+    `;
+
+    // Grade Chart
+    const gradeCounts = {};
+    APP_CONFIG.GRADES.forEach(g => { gradeCounts[g.value] = 0; });
+    students.forEach(s => { if (gradeCounts[s.grade] !== undefined) gradeCounts[s.grade]++; });
+    const maxCount = Math.max(...Object.values(gradeCounts), 1);
+    const colors = ['blue', 'green', 'yellow'];
+
+    document.getElementById('gradeChart').innerHTML = APP_CONFIG.GRADES.map((g, i) => {
+      const count = gradeCounts[g.value];
+      const percent = Math.round((count / maxCount) * 100);
+      return `
+        <div class="chart-bar-item">
+          <span class="chart-bar-label">${g.label}</span>
+          <div class="chart-bar-track">
+            <div class="chart-bar-fill ${colors[i]}" style="width: ${Math.max(percent, 10)}%">${count}</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Pending Requests
+    const pending = subs.filter(s => s.status === 'pending');
+    if (pending.length === 0) {
+      document.getElementById('pendingRequests').innerHTML = '<div class="empty-state"><i class="fas fa-check-circle"></i><h3>لا توجد طلبات معلقة</h3></div>';
+    } else {
+      document.getElementById('pendingRequests').innerHTML = pending.slice(0, 5).map(sub => {
+        const student = Storage.getById('students', sub.studentId);
+        const course = Storage.getById('courses', sub.courseId);
+        return `
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border-color);">
+            <div>
+              <strong>${student ? student.fullName : 'غير معروف'}</strong>
+              <div style="font-size:0.8rem;color:var(--text-muted);">${course ? course.name : ''} - ${sub.amount} ج.م</div>
+            </div>
+            <a href="payments.html" class="btn btn-sm btn-primary">مراجعة</a>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Recent Students
+    const recent = [...students].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 10);
+    document.getElementById('recentStudents').innerHTML = recent.map(s => `
+      <tr>
+        <td>${s.fullName}</td>
+        <td>${s.phone}</td>
+        <td><span class="badge badge-info">${Utils.getGradeLabel(s.grade)}</span></td>
+        <td>${s.governorate}</td>
+        <td>${Utils.formatDate(s.createdAt)}</td>
+      </tr>
+    `).join('');
+
+    // Close sidebar on mobile when clicking a link
+    document.querySelectorAll('.sidebar-link').forEach(link => {
+      link.addEventListener('click', () => {
+        document.querySelector('.sidebar').classList.remove('open');
+      });
+    });
+  </script>
+</body>
+</html>

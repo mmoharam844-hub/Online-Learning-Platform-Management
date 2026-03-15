@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لوحة الطالب - منصة أ/ أمين خليل</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/pages/dashboard.css">
+</head>
+<body data-page="dashboard">
+
+  <header class="header" id="header"></header>
+
+  <main class="container" style="padding-top: var(--space-xl); padding-bottom: var(--space-3xl);">
+    <!-- Welcome Section -->
+    <div class="dashboard-welcome">
+      <div class="welcome-info">
+        <h1 id="welcomeMsg">مرحباً 👋</h1>
+        <p>استمتع بتعلم المواد العلمية مع أ/ أمين خليل</p>
+      </div>
+      <div class="profile-section">
+        <div class="profile-avatar-wrapper">
+          <img id="profileAvatar" src="assets/images/default-avatar.svg" alt="صورة الطالب" class="avatar avatar-xl">
+          <button class="avatar-upload-btn" onclick="document.getElementById('avatarInput').click()">
+            <i class="fas fa-camera"></i>
+          </button>
+          <input type="file" id="avatarInput" accept="image/*" style="display:none">
+        </div>
+        <div class="profile-info" id="profileInfo"></div>
+      </div>
+    </div>
+
+    <!-- Available Courses -->
+    <div class="courses-header">
+      <h2>الكورسات المتاحة لصفك</h2>
+      <a href="my-courses.html" class="btn btn-sm btn-outline">
+        <i class="fas fa-book"></i> كورساتي
+      </a>
+    </div>
+
+    <div class="grid grid-3" id="coursesGrid">
+      <div class="empty-state" style="grid-column: 1/-1;">
+        <i class="fas fa-spinner fa-spin"></i>
+        <p>جاري التحميل...</p>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>جميع الحقوق محفوظة &copy; Mr.Amin 2026</p>
+    </div>
+  </footer>
+
+  <div id="toast-container"></div>
+
+  <script src="js/config.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/seed.js"></script>
+  <script>
+    if (!Auth.requireAuth()) throw new Error('redirect');
+
+    const user = Auth.getCurrentUser();
+    document.getElementById('header').innerHTML = Utils.renderHeader('dashboard');
+    document.getElementById('welcomeMsg').textContent = `مرحباً ${user.fullName} 👋`;
+
+    // Profile info
+    document.getElementById('profileInfo').innerHTML = `
+      <div class="info-item"><i class="fas fa-graduation-cap"></i> ${Utils.getGradeLabel(user.grade)}</div>
+      <div class="info-item"><i class="fas fa-map-marker-alt"></i> ${user.governorate}</div>
+      <div class="info-item"><i class="fas fa-phone"></i> ${user.phone}</div>
+    `;
+
+    // Avatar
+    if (user.avatarDataUrl) {
+      document.getElementById('profileAvatar').src = user.avatarDataUrl;
+    }
+
+    document.getElementById('avatarInput').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const dataUrl = await Utils.compressImage(file, 200);
+      document.getElementById('profileAvatar').src = dataUrl;
+      Storage.update('students', user.id, { avatarDataUrl: dataUrl });
+      Utils.showToast('تم تحديث الصورة بنجاح', 'success');
+    });
+
+    // Load courses for student's grade
+    function loadCourses() {
+      const courses = Storage.query('courses', c => c.grade === user.grade && c.isPublished);
+      const subscriptions = Storage.query('subscriptions', s => s.studentId === user.id);
+      const grid = document.getElementById('coursesGrid');
+
+      if (courses.length === 0) {
+        grid.innerHTML = `
+          <div class="empty-state" style="grid-column: 1/-1;">
+            <i class="fas fa-book-open"></i>
+            <h3>لا توجد كورسات متاحة حالياً</h3>
+            <p>سيتم إضافة كورسات جديدة قريباً</p>
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = courses.map(course => {
+        const sub = subscriptions.find(s => s.courseId === course.id);
+        const isSubscribed = sub && sub.status === 'approved';
+        const isPending = sub && sub.status === 'pending';
+
+        let actionBtn = '';
+        if (isSubscribed) {
+          actionBtn = `<a href="course-viewer.html?courseId=${course.id}" class="btn btn-accent btn-block"><i class="fas fa-play"></i> مشاهدة الكورس</a>`;
+        } else if (isPending) {
+          actionBtn = `<button class="btn btn-secondary btn-block" disabled><i class="fas fa-clock"></i> في انتظار الموافقة</button>`;
+        } else {
+          actionBtn = `<a href="subscription.html?courseId=${course.id}" class="btn btn-primary btn-block"><i class="fas fa-cart-plus"></i> اشترك الآن</a>`;
+        }
+
+        return `
+          <div class="course-card">
+            <div class="course-card-header">
+              <h3>${course.name}</h3>
+              <span class="grade-badge">${Utils.getGradeLabel(course.grade)}</span>
+            </div>
+            <div class="course-card-body">
+              <p>${course.description}</p>
+              <div class="course-meta">
+                <span class="price">${course.price} جنيه</span>
+                <span class="lessons-count"><i class="fas fa-video"></i> ${course.lessonsCount} درس</span>
+              </div>
+              ${actionBtn}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    loadCourses();
+  </script>
+</body>
+</html>
