@@ -1,7 +1,7 @@
 // Auto-seed demo data on first load (version-based re-seeding)
 const SEED_VERSION = 3; // Increment this to force re-seed with new data
 
-(async function seedData() {
+window.seedReady = (async function seedData() {
   const currentVersion = Storage.get('seed_version');
   if (currentVersion === SEED_VERSION) return;
 

@@ -90,6 +90,9 @@
         return;
       }
 
+      // Wait for seed data to finish loading
+      if (window.seedReady) await window.seedReady;
+
       const result = await Auth.login(phone, password);
       if (result.success) {
         Utils.showToast(result.message, 'success');

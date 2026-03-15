@@ -158,6 +158,9 @@
         return;
       }
 
+      // Wait for seed data to finish loading
+      if (window.seedReady) await window.seedReady;
+
       const result = await Auth.register({
         fullName,
         gender: gender.value,
