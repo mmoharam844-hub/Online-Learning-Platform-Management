@@ -351,3 +351,44 @@
     position: static;
   }
 }
+
+@media (max-width: 768px) {
+  .viewer-layout { padding-top: var(--space-md); padding-bottom: var(--space-xl); gap: var(--space-md); }
+
+  .video-player { margin-bottom: var(--space-md); border-radius: var(--border-radius-sm); }
+
+  .lesson-info { padding: var(--space-md); margin-bottom: var(--space-md); }
+  .lesson-info h1 { font-size: var(--font-size-xl); }
+  .lesson-meta { flex-wrap: wrap; gap: var(--space-sm); font-size: var(--font-size-xs); }
+
+  .lesson-description { font-size: var(--font-size-sm); }
+
+  .homework-box { padding: var(--space-md); }
+  .homework-box h4 { font-size: var(--font-size-sm); }
+  .homework-box p { font-size: var(--font-size-sm); }
+
+  .lesson-actions { flex-direction: column; }
+  .lesson-actions .btn { width: 100%; }
+
+  .lesson-nav { gap: var(--space-sm); }
+  .lesson-nav .btn { font-size: var(--font-size-xs); padding: 8px 14px; flex: 1; }
+
+  .lessons-list-header { padding: var(--space-sm) var(--space-md); font-size: var(--font-size-sm); }
+  .lessons-list { max-height: 40vh; }
+  .lesson-item { padding: 10px var(--space-md); }
+  .lesson-item-info .title { font-size: var(--font-size-xs); }
+
+  /* Quiz mobile */
+  .quiz-section { padding: var(--space-md); margin-top: var(--space-md); }
+  .quiz-header { flex-direction: column; gap: var(--space-sm); align-items: flex-start; margin-bottom: var(--space-md); }
+  .quiz-header h4 { font-size: var(--font-size-sm); }
+  .quiz-best-score { font-size: var(--font-size-xs); }
+  .quiz-question { padding: var(--space-sm); }
+  .quiz-question-text { font-size: var(--font-size-sm); margin-bottom: var(--space-sm); }
+  .quiz-option { padding: 8px var(--space-sm); font-size: var(--font-size-xs); }
+  .quiz-option .option-icon { width: 20px; height: 20px; font-size: 10px; }
+  .quiz-result { font-size: var(--font-size-base); padding: var(--space-md); flex-direction: column; text-align: center; }
+  .quiz-result i { font-size: var(--font-size-xl); }
+  .quiz-actions { margin-top: var(--space-md); }
+  .quiz-actions .btn { width: 100%; }
+}

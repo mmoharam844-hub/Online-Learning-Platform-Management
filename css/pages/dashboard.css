@@ -152,10 +152,30 @@
   .dashboard-welcome {
     flex-direction: column;
     text-align: center;
-    gap: var(--space-lg);
+    gap: var(--space-md);
+    padding: var(--space-lg);
+    margin-bottom: var(--space-lg);
   }
+
+  .welcome-info h1 { font-size: var(--font-size-xl); }
+  .welcome-info p { font-size: var(--font-size-sm); }
 
   .profile-section {
     flex-direction: column;
+    gap: var(--space-md);
   }
+
+  .profile-info .info-item { justify-content: center; font-size: var(--font-size-xs); }
+
+  .courses-header {
+    flex-direction: column;
+    gap: var(--space-sm);
+    text-align: center;
+  }
+
+  .course-card-header { padding: var(--space-md); }
+  .course-card-header h3 { font-size: var(--font-size-base); }
+  .course-card-body { padding: var(--space-md); }
+  .course-card-body p { min-height: auto; font-size: var(--font-size-xs); }
+  .course-meta .price { font-size: var(--font-size-lg); }
 }

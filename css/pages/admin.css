@@ -199,11 +199,29 @@
   .no-print { display: none !important; }
 }
 
-/* Responsive table */
+/* Responsive */
 @media (max-width: 768px) {
+  .admin-login-card { padding: var(--space-lg); margin: 0 var(--space-sm); }
+
+  .admin-card { padding: var(--space-md); margin-bottom: var(--space-md); }
+  .admin-card-header { flex-direction: column; gap: var(--space-sm); align-items: flex-start; }
+  .admin-card-header h2 { font-size: var(--font-size-lg); }
+
+  .chart-bar-item { flex-direction: column; align-items: stretch; gap: var(--space-xs); }
+  .chart-bar-label { width: 100%; font-size: var(--font-size-xs); }
+  .chart-bar-track { height: 22px; }
+
+  .action-row { flex-direction: column; }
+  .action-row .btn { width: 100%; }
+
   .table-wrapper { font-size: var(--font-size-sm); }
   th, td { padding: 8px 10px; font-size: var(--font-size-xs); }
+  .table-actions { flex-direction: column; }
+  .table-actions .btn { width: 100%; }
+
   .filter-row { flex-direction: column; }
   .filter-row .form-control,
   .filter-row .search-input { width: 100%; min-width: auto; }
+
+  .invoice-print { padding: 20px; }
 }
