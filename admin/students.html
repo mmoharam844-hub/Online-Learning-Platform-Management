@@ -196,14 +196,14 @@
 
         return `
           <tr>
-            <td>${student.fullName || ''}</td>
-            <td>${student.phone || ''}</td>
-            <td>${genderDisplay}</td>
-            <td><span class="badge badge-info">${gradeLabel}</span></td>
-            <td>${student.governorate || ''}</td>
-            <td>${Utils.formatDate(student.createdAt)}</td>
-            <td>${activeBadge}</td>
-            <td>
+            <td data-label="الاسم">${student.fullName || ''}</td>
+            <td data-label="الهاتف">${student.phone || ''}</td>
+            <td data-label="النوع">${genderDisplay}</td>
+            <td data-label="الصف"><span class="badge badge-info">${gradeLabel}</span></td>
+            <td data-label="المحافظة">${student.governorate || ''}</td>
+            <td data-label="تاريخ التسجيل">${Utils.formatDate(student.createdAt)}</td>
+            <td data-label="الحالة">${activeBadge}</td>
+            <td data-label="">
               <div class="table-actions">
                 <button class="btn btn-sm ${toggleBtnClass}" onclick="toggleStudentActive('${student.id}')" title="${toggleBtnText}">
                   <i class="fas ${toggleBtnIcon}"></i> ${toggleBtnText}
