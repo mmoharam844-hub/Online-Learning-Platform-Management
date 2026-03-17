@@ -167,6 +167,78 @@
   font-size: var(--font-size-xs);
 }
 
+/* Kebab Dropdown Menu */
+.kebab-menu {
+  position: relative;
+}
+
+.kebab-btn {
+  background: none;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-base);
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.kebab-btn:hover {
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.kebab-dropdown {
+  display: none;
+  position: absolute;
+  left: 0;
+  top: 100%;
+  margin-top: 4px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-lg);
+  z-index: 100;
+  min-width: 140px;
+  overflow: hidden;
+}
+
+.kebab-menu.open .kebab-dropdown {
+  display: block;
+}
+
+.kebab-dropdown button {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  width: 100%;
+  padding: 10px 14px;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  font-family: inherit;
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+
+.kebab-dropdown button:hover {
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.kebab-dropdown button.text-danger {
+  color: var(--color-danger);
+}
+
+.kebab-dropdown button.text-success {
+  color: var(--color-accent);
+}
+
 /* Invoice Print */
 .invoice-print {
   background: #fff;
@@ -246,8 +318,7 @@
   th, td { padding: 4px 3px; font-size: 9px; white-space: nowrap; }
   th { letter-spacing: 0; }
   .badge { font-size: 8px; padding: 2px 5px; }
-  .table-actions { flex-direction: column; }
-  .table-actions .btn { width: 100%; font-size: 8px; padding: 3px 4px; }
+  .kebab-btn { padding: 2px 6px; font-size: 11px; }
 
   .filter-row { flex-direction: column; }
   .filter-row .form-control,

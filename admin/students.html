@@ -7,11 +7,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="stylesheet" href="../css/variables.css?v=3">
-  <link rel="stylesheet" href="../css/base.css?v=3">
-  <link rel="stylesheet" href="../css/components.css?v=3">
-  <link rel="stylesheet" href="../css/layout.css?v=3">
-  <link rel="stylesheet" href="../css/pages/admin.css?v=3">
+  <link rel="stylesheet" href="../css/variables.css?v=4">
+  <link rel="stylesheet" href="../css/base.css?v=4">
+  <link rel="stylesheet" href="../css/components.css?v=4">
+  <link rel="stylesheet" href="../css/layout.css?v=4">
+  <link rel="stylesheet" href="../css/pages/admin.css?v=4">
 </head>
 <body data-page="admin-students">
 
@@ -204,10 +204,15 @@
             <td data-label="تاريخ التسجيل">${Utils.formatDate(student.createdAt)}</td>
             <td data-label="الحالة">${activeBadge}</td>
             <td data-label="">
-              <div class="table-actions">
-                <button class="btn btn-sm ${toggleBtnClass}" onclick="toggleStudentActive('${student.id}')" title="${toggleBtnText}">
-                  <i class="fas ${toggleBtnIcon}"></i> ${toggleBtnText}
+              <div class="kebab-menu">
+                <button class="kebab-btn" onclick="toggleKebab(event, this)">
+                  <i class="fas fa-ellipsis-vertical"></i>
                 </button>
+                <div class="kebab-dropdown">
+                  <button class="${isActive ? 'text-danger' : 'text-success'}" onclick="toggleStudentActive('${student.id}')">
+                    <i class="fas ${toggleBtnIcon}"></i> ${toggleBtnText}
+                  </button>
+                </div>
               </div>
             </td>
           </tr>
@@ -341,6 +346,21 @@
       // Scroll to top of table
       document.querySelector('.table-wrapper').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
+
+    // Kebab menu toggle
+    function toggleKebab(e, btn) {
+      e.stopPropagation();
+      const menu = btn.closest('.kebab-menu');
+      const wasOpen = menu.classList.contains('open');
+      // Close all open menus
+      document.querySelectorAll('.kebab-menu.open').forEach(m => m.classList.remove('open'));
+      if (!wasOpen) menu.classList.add('open');
+    }
+
+    // Close kebab on click outside
+    document.addEventListener('click', () => {
+      document.querySelectorAll('.kebab-menu.open').forEach(m => m.classList.remove('open'));
+    });
 
     // Close sidebar on mobile when clicking a link
     document.querySelectorAll('.sidebar-link').forEach(link => {
