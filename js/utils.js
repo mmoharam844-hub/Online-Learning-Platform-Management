@@ -196,15 +196,15 @@ const Utils = {
         <a href="index.html" class="${currentPage === 'home' ? 'active' : ''}">الرئيسية</a>
       `;
       actionsHtml = `
-        <a href="login.html" class="btn btn-sm btn-outline">تسجيل دخول</a>
-        <a href="register.html" class="btn btn-sm btn-primary">إنشاء حساب</a>
+        <a href="login.html" class="btn btn-sm" style="background:none;color:var(--text-primary);">تسجيل دخول</a>
+        <a href="register.html" class="btn btn-sm" style="background:none;color:var(--text-primary);">إنشاء حساب</a>
       `;
     }
 
     return `
       <div class="container">
         <a href="index.html" class="header-logo">
-          <img src="assets/images/logo.svg" alt="${APP_CONFIG.TEACHER_NAME}">
+          <img src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&h=400&fit=crop&crop=face" alt="${APP_CONFIG.TEACHER_NAME}">
           <span>${APP_CONFIG.TEACHER_NAME}</span>
         </a>
         <button class="mobile-toggle" onclick="document.querySelector('.header-nav').classList.toggle('open')">
@@ -232,7 +232,7 @@ const Utils = {
 
     return `
       <div class="sidebar-logo">
-        <img src="../assets/images/logo.svg" alt="${APP_CONFIG.TEACHER_NAME}">
+        <img src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&h=400&fit=crop&crop=face" alt="${APP_CONFIG.TEACHER_NAME}">
         <span>لوحة التحكم</span>
       </div>
       <nav class="sidebar-nav">
